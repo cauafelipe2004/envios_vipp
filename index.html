@@ -291,6 +291,7 @@ body{font-family:'Sora',sans-serif;background:var(--bg);color:var(--text);min-he
     <button class="tab" onclick="showTab('enderecos',this)">Endereços</button>
     <button class="tab" onclick="showTab('historico',this)">Histórico <span class="tab-badge" id="hist-badge">0</span></button>
     <button class="tab" onclick="showTab('config',this)">Remetente</button>
+    <button class="tab" onclick="showTab('loja',this)">🏪 Envio Loja</button>
   </div>
 
   <!-- ══ DASHBOARD ══ -->
@@ -421,6 +422,8 @@ body{font-family:'Sora',sans-serif;background:var(--bg);color:var(--text);min-he
             </div>
             <div class="form-group"><label>Chave NF-e <span style="font-weight:400;color:var(--hint);font-size:10px">(44 dígitos)</span></label><input type="text" id="d-chave" placeholder="44 dígitos" maxlength="44" oninput="gerarEtiquetaAuto()" /></div>
             <div class="form-group"><label>Doc. Destinatário <span style="font-weight:400;color:var(--hint);font-size:10px">(CPF/CNPJ)</span></label><input type="text" id="d-doc-dest" placeholder="000.000.000-00" maxlength="20" /></div>
+            <div class="form-group"><label>Qtd. Volumes <span style="font-weight:400;color:var(--hint);font-size:10px">(para impressão)</span></label><input type="number" id="d-volumes" value="1" min="1" max="99" style="max-width:100px" /></div>
+            <div class="form-group"><label>Valor Declarado <span style="font-weight:400;color:var(--hint);font-size:10px">(da NF-e)</span></label><input type="text" id="d-valor" placeholder="R$ 0,00" style="color:var(--green);font-weight:600" /></div>
             <button type="button" class="accordion-toggle" id="dim-toggle" onclick="toggleDimensoes()" style="width:100%;display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:var(--bg);border:1.5px solid var(--border);border-radius:var(--radius-sm);cursor:pointer;font-size:12.5px;font-weight:600;color:var(--muted);margin-bottom:4px;transition:.15s;font-family:inherit">
               <span>📦 Dimensões <span style="font-weight:400;font-size:11px">(opcional)</span></span>
               <span id="dim-arrow" style="font-size:11px;transition:.2s">▼</span>
@@ -538,6 +541,107 @@ body{font-family:'Sora',sans-serif;background:var(--bg);color:var(--text);min-he
     </div>
   </div>
 
+
+  <!-- ══ ENVIO PARA LOJA ══ -->
+  <div id="tab-loja" class="tab-content">
+    <div class="gerador-split">
+
+      <!-- Coluna esquerda: formulário -->
+      <div>
+        <div class="card">
+          <div class="card-header">
+            <span class="step-badge">1</span>
+            <h2>XML da Nota Fiscal</h2>
+          </div>
+          <div class="card-body">
+            <div class="alert alert-info" style="margin-bottom:10px"><span class="alert-icon">🏪</span><span>O <strong>endereço da loja</strong> (destinatário) é preenchido automaticamente a partir do XML da NF-e.</span></div>
+            <div class="upload-zone" id="zone-loja-xml" style="padding:14px 10px">
+              <input type="file" accept=".xml" multiple onchange="adicionarXMLsLoja(this)" />
+              <div class="uz-icon" style="font-size:20px;margin-bottom:3px">📄</div>
+              <div class="uz-label" id="loja-xml-label" style="font-size:12px">Clique ou arraste o XML da NF-e</div>
+              <div class="uz-sub" style="font-size:10.5px">Vários XMLs em fila</div>
+            </div>
+            <div id="loja-xml-fila" style="display:none;margin-top:10px"></div>
+            <div id="loja-nf-parsed" style="display:none"></div>
+            <div id="loja-proxima-nf-bar" style="display:none;margin-top:12px">
+              <button class="btn btn-primary btn-full" style="justify-content:center;gap:10px;font-size:13.5px;padding:11px" onclick="avancarXMLFilaLoja()">
+                ➡️ Próxima NF <span id="loja-proxima-nf-count" style="background:rgba(255,255,255,.25);padding:1px 8px;border-radius:10px;font-size:11.5px"></span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header"><span class="step-badge">2</span><h2>Destinatário (da Nota)</h2></div>
+          <div class="card-body">
+            <div class="form-group">
+              <label>Nome / Razão Social</label>
+              <input type="text" id="l-nome" placeholder="Preenchido pelo XML..." oninput="gerarEtiquetaLojaAuto()" />
+            </div>
+            <div class="grid3">
+              <div class="form-group"><label>Logradouro</label><input type="text" id="l-logradouro" oninput="gerarEtiquetaLojaAuto()" /></div>
+              <div class="form-group"><label>Número</label><input type="text" id="l-numero" oninput="gerarEtiquetaLojaAuto()" /></div>
+              <div class="form-group"><label>Complemento</label><input type="text" id="l-complemento" oninput="gerarEtiquetaLojaAuto()" /></div>
+            </div>
+            <div class="grid3">
+              <div class="form-group"><label>Bairro</label><input type="text" id="l-bairro" oninput="gerarEtiquetaLojaAuto()" /></div>
+              <div class="form-group"><label>Cidade</label><input type="text" id="l-cidade" oninput="gerarEtiquetaLojaAuto()" /></div>
+              <div class="form-group"><label>UF</label><input type="text" id="l-uf" maxlength="2" style="text-transform:uppercase" oninput="gerarEtiquetaLojaAuto()" /></div>
+            </div>
+            <div class="grid2s">
+              <div class="form-group">
+                <label>CEP</label>
+                <input type="text" id="l-cep" placeholder="00000-000" oninput="onCepInputLoja(this)" />
+                <div class="input-hint" id="loja-cep-status"></div>
+              </div>
+              <div class="form-group"><label>A/C (Aos Cuidados)</label><input type="text" id="l-ac" placeholder="A/C GERENTE ADM" oninput="gerarEtiquetaLojaAuto()" /></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header"><span class="step-badge">3</span><h2>Dados do Envio</h2></div>
+          <div class="card-body">
+            <div class="grid2s">
+              <div class="form-group"><label>Número da NF</label><input type="text" id="l-nf" placeholder="Ex: 000001" oninput="gerarEtiquetaLojaAuto()" /></div>
+              <div class="form-group"><label>Pedido / OS</label><input type="text" id="l-os" placeholder="Ex: OS-2024-001" oninput="gerarEtiquetaLojaAuto()" /></div>
+            </div>
+            <div class="form-group"><label>Chave NF-e <span style="font-weight:400;color:var(--hint);font-size:10px">(44 dígitos)</span></label><input type="text" id="l-chave" placeholder="44 dígitos" maxlength="44" oninput="gerarEtiquetaLojaAuto()" /></div>
+            <div class="form-group"><label>Doc. Destinatário <span style="font-weight:400;color:var(--hint);font-size:10px">(CPF/CNPJ)</span></label><input type="text" id="l-doc-dest" placeholder="000.000.000-00" maxlength="20" /></div>
+            <div class="form-group"><label>Valor Declarado <span style="font-weight:400;color:var(--hint);font-size:10px">(da NF-e)</span></label><input type="text" id="l-valor" placeholder="R$ 0,00" style="color:var(--green);font-weight:600" /></div>
+            <div class="form-group"><label>Observações internas</label><textarea id="l-obs" placeholder="Notas internas (não exportadas)..."></textarea></div>
+            <div class="btn-row">
+              <button class="btn btn-primary" onclick="gerarEtiquetaLoja()">🏷️ Gerar Etiqueta</button>
+              <button class="btn btn-ghost" onclick="limparTudoLoja()">🗑️ Limpar</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Coluna direita: preview sticky -->
+      <div class="preview-sticky no-print">
+        <div class="preview-wrapper">
+          <div class="preview-header">
+            <div class="preview-title">👁️ Pré-visualização</div>
+            <span class="preview-status ps-empty" id="loja-preview-status">Aguardando</span>
+          </div>
+          <div class="preview-body" id="loja-preview-area">
+            <div class="preview-placeholder">
+              <div class="pp-icon">🏪</div>
+              <div class="pp-text">Carregue o <strong>XML da NF-e</strong> para preencher o endereço da loja automaticamente.</div>
+            </div>
+          </div>
+          <div class="preview-actions" id="loja-preview-actions" style="display:none">
+            <button class="btn btn-success btn-sm" onclick="window.print()">🖨️ Imprimir</button>
+            <button class="btn btn-outline btn-sm" onclick="copiarEtiquetaLoja()">📋 Copiar</button>
+            <button class="btn btn-amber btn-sm" onclick="salvarHistoricoLoja()">💾 Salvar <span class="kbd">Ctrl S</span></button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
 </div><!-- /main -->
 
 <!-- ══ MODAL CONFIRMAÇÃO ══ -->
@@ -586,6 +690,7 @@ body{font-family:'Sora',sans-serif;background:var(--bg);color:var(--text);min-he
 <script>
 let tecnicos=JSON.parse(localStorage.getItem('etiquetas_tecnicos')||'[]');
 let nfData={}, cepTimer=null, autoTimer=null, xmlFila=[], xmlFilaTotal=0;
+let lojaXmlFila=[], lojaXmlFilaTotal=0, lojaNfData={}, lojaAutoTimer=null, lojaCepTimer=null;
 let historico=JSON.parse(localStorage.getItem('etiquetas_historico')||'[]');
 let enderecosSalvos=JSON.parse(localStorage.getItem('etiquetas_enderecos')||'[]');
 
@@ -622,6 +727,7 @@ function showTab(name,el){
   // exportar tab removed — handled via header button
   if(name==='enderecos')renderEnderecos();
   if(name==='dashboard')renderDashboard();
+  if(name==='loja'){}  // nada especial na inicialização
 }
 
 // ── STATS ACUMULADOR (independente do histórico) ──
@@ -987,15 +1093,24 @@ function carregarProximoXML(){
       const inf=doc.querySelector('infNFe');if(inf)nfData.chave=(inf.getAttribute('Id')||'').replace(/^NFe/,'');
       const nNF=doc.querySelector('nNF');if(nNF)nfData.numero=nNF.textContent;
       const xPed=doc.querySelector('xPed')||doc.querySelector('nPed');if(xPed)nfData.pedido=xPed.textContent;
-      const dest=doc.querySelector('dest');if(dest){const xN=dest.querySelector('xNome');if(xN)nfData.destNome=xN.textContent;}
+      const dest=doc.querySelector('dest');
+      if(dest){
+        const xN=dest.querySelector('xNome');if(xN)nfData.destNome=xN.textContent;
+        const cnpjEl=dest.querySelector('CNPJ');const cpfEl=dest.querySelector('CPF');
+        nfData.docDest=cnpjEl?cnpjEl.textContent:(cpfEl?cpfEl.textContent:'');
+      }
+      const vNFEl=doc.querySelector('vNF');if(vNFEl)nfData.valorDeclarado=parseFloat(vNFEl.textContent||'0').toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
       if(nfData.numero)document.getElementById('d-nf').value=nfData.numero;
       if(nfData.pedido)document.getElementById('d-os').value=nfData.pedido;
       if(nfData.chave)document.getElementById('d-chave').value=nfData.chave;
+      if(nfData.docDest)document.getElementById('d-doc-dest').value=nfData.docDest;
+      if(nfData.valorDeclarado){const vEl=document.getElementById('d-valor');if(vEl)vEl.value=nfData.valorDeclarado;}
       const p=document.getElementById('nf-parsed');p.style.display='block';
       p.innerHTML=`<div class="nf-parsed"><div class="nf-row">
         <div class="nf-kv"><span>NF</span><strong>${nfData.numero||'—'}</strong></div>
         <div class="nf-kv"><span>Pedido</span><strong>${nfData.pedido||'—'}</strong></div>
         <div class="nf-kv"><span>Destinatário</span><strong>${nfData.destNome||'—'}</strong></div>
+        ${nfData.valorDeclarado?`<div class="nf-kv"><span>Valor NF</span><strong style="color:var(--green)">${nfData.valorDeclarado}</strong></div>`:''}
       </div>${nfData.chave?`<div style="font-size:10px;color:var(--hint);margin-top:5px;word-break:break-all">🔑 ${nfData.chave}</div>`:''}</div>`;
       renderFilaXML();gerarEtiquetaAuto();
       setTimeout(()=>{const el=document.getElementById('input-tecnico');if(el){el.focus();el.select();}},80);
@@ -1015,12 +1130,12 @@ function limparZonaXML(){
   document.getElementById('xml-fila').style.display='none';
   document.getElementById('zone-xml').className='upload-zone';
   document.getElementById('xml-label').textContent='Clique ou arraste os arquivos XML';
-  ['d-nf','d-os','d-chave'].forEach(id=>document.getElementById(id).value='');
+  ['d-nf','d-os','d-chave','d-valor'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';}); 
 }
 function avancarXMLFila(){
   xmlFila.shift();
   document.getElementById('nf-parsed').style.display='none';
-  ['d-nf','d-os','d-chave'].forEach(id=>document.getElementById(id).value='');
+  ['d-nf','d-os','d-chave','d-valor'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';}); 
   document.getElementById('input-tecnico').value='';
   ['t-logradouro','t-numero','t-complemento','t-bairro','t-cidade','t-uf','t-cep','t-ac']
     .forEach(id=>{const el=document.getElementById(id);if(el){el.value='';el.classList.remove('autofilled');}});
@@ -1085,6 +1200,8 @@ function getFormData(){
     obs:document.getElementById('d-obs').value.trim(),
     chave:document.getElementById('d-chave').value.trim(),
     docDest:document.getElementById('d-doc-dest').value.trim(),
+    valorDeclarado:document.getElementById('d-valor')?document.getElementById('d-valor').value.trim():'',
+    volumes:parseInt(document.getElementById('d-volumes')?document.getElementById('d-volumes').value:1)||1,
     peso:document.getElementById('d-peso').value.trim(),
     altura:document.getElementById('d-altura').value.trim(),
     largura:document.getElementById('d-largura').value.trim(),
@@ -1110,14 +1227,67 @@ function gerarEtiqueta(silent=false){
         <div class="etiqueta-nome">${d.destNome.toUpperCase()}</div>
         <div class="etiqueta-end">${endLine?endLine+'<br>':''}${d.bairro?d.bairro+' — ':''}${d.cidade}${d.uf?'/'+d.uf:''}</div>
         <div class="etiqueta-cep">CEP: ${d.cep}</div>
-        ${(d.nf||d.os||d.chave)?`<div class="etiqueta-nf">${d.nf?'📄 NF: '+d.nf+'&nbsp;&nbsp;':''}${d.os?'🔧 OS: '+d.os+'&nbsp;&nbsp;':''}${d.chave?'<br>🔑 '+d.chave:''}</div>`:''}
+        ${(d.nf||d.os||d.chave||d.valorDeclarado)?`<div class="etiqueta-nf">${d.nf?'📄 NF: '+d.nf+'&nbsp;&nbsp;':''}${d.os?'🔧 OS: '+d.os+'&nbsp;&nbsp;':''}${d.valorDeclarado?'💰 Valor: '+d.valorDeclarado+'&nbsp;&nbsp;':''}${d.chave?'<br>🔑 '+d.chave:''}</div>`:''}
       </div>
     </div>`;
   document.getElementById('preview-actions').style.display='flex';
   document.getElementById('preview-status').textContent='Pronta';
   document.getElementById('preview-status').className='preview-status ps-ready';
 }
-function imprimirEtiqueta(){window.print();}
+function imprimirEtiqueta(){
+  const d=getFormData();
+  const rem=getRemetente();
+  const volumes=d.volumes||1;
+  if(volumes<=1){window.print();return;}
+  // Gera janela com N etiquetas sequenciais
+  const endLine=[d.logradouro,d.numero,d.complemento].filter(Boolean).join(', ');
+  const remStr=rem.nome?`${rem.nome}${rem.cnpj?' | CNPJ: '+rem.cnpj:''} — ${rem.cidade||''}/${rem.uf||''} — CEP: ${rem.cep||''}`:'';
+  let labels='';
+  for(let i=1;i<=volumes;i++){
+    labels+=`
+    <div class="vol-label">
+      <div class="vol-header">
+        <span class="vol-field">CLIENTE:</span> ${(d.destNome||'').toUpperCase()}
+      </div>
+      <div class="vol-header">
+        <span class="vol-field">ENDEREÇO:</span>
+      </div>
+      <div class="vol-address">
+        ${d.ac?'<div>'+d.ac.toUpperCase()+'</div>':''}
+        <div>${(endLine||'').toUpperCase()}</div>
+        <div>${d.bairro?d.bairro.toUpperCase()+' - ':''} ${(d.cidade||'').toUpperCase()} - ${d.uf}</div>
+        <div>${d.cep}</div>
+      </div>
+      <div class="vol-row">
+        <span class="vol-field">NOTA FISCAL:</span> ${d.nf||'—'}
+      </div>
+      <div class="vol-row">
+        <span class="vol-field">QUANTIDADE:</span> ${i} DE ${volumes} VOLUME${volumes>1?'S':''}
+      </div>
+      <div class="vol-footer">
+        <div class="vol-logo">SEKRON<span>Digital</span></div>
+      </div>
+    </div>`;
+  }
+  const w=window.open('','_blank');
+  w.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Etiquetas — ${d.destNome}</title>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:Arial,sans-serif;background:#fff;padding:10px}
+    .vol-label{width:148mm;min-height:100mm;border:2px solid #000;padding:10px 14px;margin-bottom:10px;page-break-inside:avoid;break-inside:avoid}
+    .vol-header{background:#00ff00;font-weight:800;font-size:13pt;padding:3px 6px;margin-bottom:4px}
+    .vol-field{background:#00ff00;font-weight:800;padding:2px 6px}
+    .vol-address{text-align:center;font-weight:700;font-size:11pt;margin:12px 0;line-height:1.7}
+    .vol-row{font-weight:800;font-size:12pt;margin:5px 0;padding:2px 6px}
+    .vol-row .vol-field{display:inline;background:#00ff00}
+    .vol-footer{display:flex;justify-content:flex-end;margin-top:8px}
+    .vol-logo{font-size:18pt;font-weight:900;color:#cc0000;letter-spacing:-1px}
+    .vol-logo span{font-size:11pt;font-weight:400;color:#888;display:block;text-align:right;margin-top:-4px;font-style:italic}
+    @media print{body{padding:0}.vol-label{margin-bottom:6mm;border-color:#000}}
+  </style></head><body>${labels}</body></html>`);
+  w.document.close();
+  setTimeout(()=>w.print(),400);
+}
 function copiarEtiqueta(){
   const d=getFormData();const rem=getRemetente();
   const endLine=[d.logradouro,d.numero,d.complemento].filter(Boolean).join(', ');
@@ -1146,10 +1316,9 @@ function confirmarSalvar(){
   registrarStat(d);
   atualizarHeaderStats();
   showToast('✅ Salvo no histórico!','success');
-  if(xmlFila.length>0){
+  if(modal._afterSave){modal._afterSave();modal._afterSave=null;}
+  else if(xmlFila.length>0){
     avancarXMLFila();
-    // focus goes to tecnico field after XML loads (carregarProximoXML handles it)
-    // but if no more XMLs, focus immediately
   } else {
     setTimeout(()=>{const el=document.getElementById('input-tecnico');if(el){el.focus();el.select();}},80);
   }
@@ -1253,12 +1422,34 @@ function renderExportar(){
 }
 function exportarCorreios(){
   const rem=getRemetente();const ws_data=[];
+  // Cabeçalho conforme layout dos Correios
+  ws_data.push(['Nome','CEP','Logradouro','Nº','Complemento','Bairro','Cidade','UF','Observacao1','Chave Da NFE/DCE','NumeroNotaFiscal','ValorNotaFiscal','Declarado','Conteudo','Aos Cuidados']);
   historico.forEach(h=>{
-    ws_data.push([(h.destNome||'').toUpperCase(),(h.cep||'').replace('-',''),(h.logradouro||'').toUpperCase(),(h.numero||'')||'SN',(h.complemento||'').toUpperCase(),(h.bairro||'').toUpperCase(),(h.cidade||'').toUpperCase(),(h.uf||'').toUpperCase(),(h.ac||'').toUpperCase(),h.docDest||'',rem.cnpj||'',h.peso?parseInt(h.peso):'',h.altura?parseInt(h.altura):'',h.largura?parseInt(h.largura):'',h.comprimento?parseInt(h.comprimento):'',h.chave||h.nf||'']);
+    // ValorNotaFiscal: tenta converter o valorDeclarado salvo, senão 0.00
+    const valorRaw=(h.valorDeclarado||'0').replace(/[R$\s.]/g,'').replace(',','.');
+    const valor=parseFloat(valorRaw)||0;
+    ws_data.push([
+      (h.destNome||'').toUpperCase(),          // Nome
+      (h.cep||'').replace('-',''),              // CEP
+      (h.logradouro||'').toUpperCase(),         // Logradouro
+      (h.numero||'')||'SN',                     // Nº
+      (h.complemento||'').toUpperCase(),        // Complemento
+      (h.bairro||'').toUpperCase(),             // Bairro
+      (h.cidade||'').toUpperCase(),             // Cidade
+      (h.uf||'').toUpperCase(),                 // UF
+      (h.os||'').toUpperCase(),                 // Observacao1 = Pedido/OS
+      h.chave||'',                              // Chave Da NFE/DCE
+      h.nf||'',                                 // NumeroNotaFiscal
+      valor,                                    // ValorNotaFiscal
+      valor,                                    // Declarado (mesmo valor)
+      'MATERIAL DE ALARME',                     // Conteudo
+      (h.ac||'').toUpperCase()                    // Aos Cuidados
+    ]);
   });
   const wb=XLSX.utils.book_new();const ws=XLSX.utils.aoa_to_sheet(ws_data);
-  ws_data.forEach((_,ri)=>{const ca=XLSX.utils.encode_cell({r:ri,c:15});if(ws[ca])ws[ca].t='s';});
-  ws['!cols']=[{wch:35},{wch:11},{wch:35},{wch:10},{wch:20},{wch:25},{wch:25},{wch:5},{wch:35},{wch:20},{wch:20},{wch:8},{wch:8},{wch:8},{wch:12},{wch:48}];
+  // Garante chave como texto
+  ws_data.forEach((_,ri)=>{if(ri===0)return;const ca=XLSX.utils.encode_cell({r:ri,c:9});if(ws[ca])ws[ca].t='s';});
+  ws['!cols']=[{wch:35},{wch:11},{wch:35},{wch:8},{wch:20},{wch:25},{wch:25},{wch:5},{wch:35},{wch:48},{wch:15},{wch:14},{wch:12},{wch:20},{wch:35}];
   XLSX.utils.book_append_sheet(wb,ws,'Simples');
   const totalExportado=historico.length;
   // Salva snapshot do histórico exportado no localStorage antes de limpar
@@ -1290,7 +1481,8 @@ function formatCEP(input){let v=input.value.replace(/\D/g,'');if(v.length>5)v=v.
 function limparTudo(){
   document.getElementById('input-tecnico').value='';
   ['t-logradouro','t-numero','t-complemento','t-bairro','t-cidade','t-uf','t-cep','t-ac',
-   'd-nf','d-os','d-obs','d-chave','d-doc-dest','d-peso','d-altura','d-largura','d-comprimento']
+   'd-nf','d-os','d-obs','d-chave','d-doc-dest','d-valor','d-peso','d-altura','d-largura','d-comprimento']
+    .concat([])  // d-volumes keeps default 1
     .forEach(id=>{const el=document.getElementById(id);if(el){el.value='';el.classList.remove('autofilled');}});
   document.getElementById('cep-status').textContent='';
   document.getElementById('preview-area').innerHTML='<div class="preview-placeholder"><div class="pp-icon">🏷️</div><div class="pp-text">Preencha o <strong>nome</strong> e o <strong>CEP</strong> do destinatário para ver a etiqueta em tempo real.</div></div>';
@@ -1336,6 +1528,238 @@ document.addEventListener('keydown', e => {
   }
 });
 
+
+// ── ENVIO PARA LOJA ──
+function adicionarXMLsLoja(input){
+  const files=Array.from(input.files);if(!files.length)return;
+  lojaXmlFila=[...lojaXmlFila,...files];lojaXmlFilaTotal=lojaXmlFila.length;renderFilaXMLLoja();
+  if(lojaXmlFila.length===files.length)carregarProximoXMLLoja();
+  input.value='';
+}
+function renderFilaXMLLoja(){
+  const el=document.getElementById('loja-xml-fila');
+  const bar=document.getElementById('loja-proxima-nf-bar');
+  const cnt=document.getElementById('loja-proxima-nf-count');
+  if(!lojaXmlFila.length){el.style.display='none';if(bar)bar.style.display='none';return;}
+  const total=lojaXmlFilaTotal||lojaXmlFila.length;
+  const done=total-lojaXmlFila.length;
+  const pct=Math.round((done/total)*100);
+  const progressHTML=total>1?`
+    <div style="margin-bottom:10px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px">
+        <span style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.4px">Progresso da fila</span>
+        <span style="font-size:12px;font-weight:700;color:var(--blue-mid)">${done} / ${total}</span>
+      </div>
+      <div style="height:6px;background:var(--border);border-radius:10px;overflow:hidden">
+        <div style="height:100%;width:${pct}%;background:linear-gradient(90deg,var(--blue),var(--blue-mid));border-radius:10px;transition:width .4s ease"></div>
+      </div>
+      <div style="font-size:10.5px;color:var(--hint);margin-top:4px">${lojaXmlFila.length} restante(s) — ${pct}% concluído</div>
+    </div>`:'';
+  if(bar){bar.style.display=lojaXmlFila.length>1?'block':'none';if(cnt)cnt.textContent=lojaXmlFila.length>1?`${lojaXmlFila.length-1} restante(s)`:'';}
+  el.style.display='block';
+  el.innerHTML=progressHTML+lojaXmlFila.map((f,i)=>`
+    <div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--border);font-size:12px;">
+      <span style="width:20px;height:20px;border-radius:50%;background:${i===0?'var(--blue)':'var(--border)'};color:${i===0?'#fff':'var(--muted)'};display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0">${done+i+1}</span>
+      <span style="flex:1;color:${i===0?'var(--text)':'var(--muted)'};overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${f.name}</span>
+      ${i===0?'<span style="font-size:10px;background:rgba(59,130,246,.15);color:var(--blue-mid);padding:2px 7px;border-radius:10px;font-weight:600">atual</span>':''}
+      <button onclick="removerXMLFilaLoja(${i})" style="background:none;border:none;cursor:pointer;color:var(--hint);font-size:13px;padding:2px 4px;flex-shrink:0">✕</button>
+    </div>`).join('');
+  document.getElementById('loja-xml-label').textContent=total>1?`${done}/${total} XMLs processados`:`${lojaXmlFila.length} XML na fila`;
+  document.getElementById('zone-loja-xml').classList.toggle('success',lojaXmlFila.length>0);
+}
+function carregarProximoXMLLoja(){
+  if(!lojaXmlFila.length)return;
+  const file=lojaXmlFila[0];
+  const reader=new FileReader();
+  reader.onload=function(e){
+    try{
+      const doc=new DOMParser().parseFromString(e.target.result,'application/xml');
+      lojaNfData={};
+      // Chave e número
+      const inf=doc.querySelector('infNFe');if(inf)lojaNfData.chave=(inf.getAttribute('Id')||'').replace(/^NFe/,'');
+      const nNF=doc.querySelector('nNF');if(nNF)lojaNfData.nfNumero=nNF.textContent;
+      const xPed=doc.querySelector('xPed')||doc.querySelector('nPed');if(xPed)lojaNfData.pedido=xPed.textContent;
+      const vNF=doc.querySelector('vNF');if(vNF)lojaNfData.valorDeclarado=parseFloat(vNF.textContent||'0').toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
+      // Destinatário
+      const dest=doc.querySelector('dest');
+      if(dest){
+        const xN=dest.querySelector('xNome');if(xN)lojaNfData.destNome=xN.textContent;
+        const cnpjEl=dest.querySelector('CNPJ');const cpfEl=dest.querySelector('CPF');
+        lojaNfData.docDest=cnpjEl?cnpjEl.textContent:(cpfEl?cpfEl.textContent:'');
+        // Endereço do destinatário
+        const end=dest.querySelector('enderDest');
+        if(end){
+          const g=tag=>{ const el=end.querySelector(tag); return el?el.textContent.trim():''; };
+          lojaNfData.logradouro=g('xLgr');
+          lojaNfData.numero=g('nro');
+          lojaNfData.complemento=g('xCpl');
+          lojaNfData.bairro=g('xBairro');
+          lojaNfData.cidade=g('xMun');
+          lojaNfData.uf=g('UF');
+          let cep=g('CEP');
+          if(cep.length===8)cep=cep.substring(0,5)+'-'+cep.substring(5);
+          lojaNfData.cep=cep;
+        }
+      }
+      // Preencher campos
+      if(lojaNfData.destNome)document.getElementById('l-nome').value=lojaNfData.destNome;
+      if(lojaNfData.logradouro)document.getElementById('l-logradouro').value=lojaNfData.logradouro;
+      if(lojaNfData.numero)document.getElementById('l-numero').value=lojaNfData.numero;
+      if(lojaNfData.complemento)document.getElementById('l-complemento').value=lojaNfData.complemento;
+      if(lojaNfData.bairro)document.getElementById('l-bairro').value=lojaNfData.bairro;
+      if(lojaNfData.cidade)document.getElementById('l-cidade').value=lojaNfData.cidade;
+      if(lojaNfData.uf)document.getElementById('l-uf').value=lojaNfData.uf;
+      if(lojaNfData.cep){document.getElementById('l-cep').value=lojaNfData.cep;}
+      if(lojaNfData.nfNumero)document.getElementById('l-nf').value=lojaNfData.nfNumero;
+      if(lojaNfData.valorDeclarado)document.getElementById('l-valor').value=lojaNfData.valorDeclarado;
+      if(lojaNfData.pedido)document.getElementById('l-os').value=lojaNfData.pedido;
+      if(lojaNfData.chave)document.getElementById('l-chave').value=lojaNfData.chave;
+      if(lojaNfData.docDest)document.getElementById('l-doc-dest').value=lojaNfData.docDest;
+      // Highlight campos preenchidos
+      ['l-nome','l-logradouro','l-numero','l-complemento','l-bairro','l-cidade','l-uf','l-cep'].forEach(id=>{
+        const el=document.getElementById(id);if(el&&el.value)el.classList.add('autofilled');
+      });
+      // Painel NF parsed
+      const p=document.getElementById('loja-nf-parsed');p.style.display='block';
+      p.innerHTML=`<div class="nf-parsed"><div class="nf-row">
+        <div class="nf-kv"><span>NF</span><strong>${lojaNfData.nfNumero||'—'}</strong></div>
+        <div class="nf-kv"><span>Valor Declarado</span><strong style="color:var(--green)">${lojaNfData.valorDeclarado||'—'}</strong></div>
+        <div class="nf-kv"><span>Pedido</span><strong>${lojaNfData.pedido||'—'}</strong></div>
+        <div class="nf-kv"><span>Destinatário</span><strong>${lojaNfData.destNome||'—'}</strong></div>
+      </div>
+      <div class="nf-row" style="margin-top:6px">
+        <div class="nf-kv"><span>Endereço</span><strong>${[lojaNfData.logradouro,lojaNfData.numero].filter(Boolean).join(', ')||'—'}</strong></div>
+        <div class="nf-kv"><span>Cidade/UF</span><strong>${lojaNfData.cidade||'—'}${lojaNfData.uf?'/'+lojaNfData.uf:''}</strong></div>
+        <div class="nf-kv"><span>CEP</span><strong>${lojaNfData.cep||'—'}</strong></div>
+      </div>
+      ${lojaNfData.chave?`<div style="font-size:10px;color:var(--hint);margin-top:5px;word-break:break-all">🔑 ${lojaNfData.chave}</div>`:''}</div>`;
+      renderFilaXMLLoja();gerarEtiquetaLojaAuto();
+      setTimeout(()=>{const el=document.getElementById('l-nome');if(el){el.focus();}},80);
+    }catch(err){alert('Erro XML: '+err.message);}
+  };
+  reader.readAsText(file,'UTF-8');
+}
+function removerXMLFilaLoja(i){
+  lojaXmlFila.splice(i,1);
+  if(i===0&&lojaXmlFila.length)carregarProximoXMLLoja();
+  else if(!lojaXmlFila.length)limparZonaXMLLoja();
+  else renderFilaXMLLoja();
+}
+function limparZonaXMLLoja(){
+  lojaXmlFila=[];lojaXmlFilaTotal=0;lojaNfData={};
+  document.getElementById('loja-nf-parsed').style.display='none';
+  document.getElementById('loja-xml-fila').style.display='none';
+  document.getElementById('zone-loja-xml').className='upload-zone';
+  document.getElementById('loja-xml-label').textContent='Clique ou arraste o XML da NF-e';
+  ['l-nf','l-os','l-chave'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+}
+function avancarXMLFilaLoja(){
+  lojaXmlFila.shift();
+  document.getElementById('loja-nf-parsed').style.display='none';
+  ['l-nf','l-os','l-chave','l-nome','l-logradouro','l-numero','l-complemento','l-bairro','l-cidade','l-uf','l-cep','l-ac','l-doc-dest','l-obs','l-valor']
+    .forEach(id=>{const el=document.getElementById(id);if(el){el.value='';el.classList.remove('autofilled');}});
+  document.getElementById('loja-cep-status').textContent='';
+  document.getElementById('loja-preview-area').innerHTML='<div class="preview-placeholder"><div class="pp-icon">🏪</div><div class="pp-text">Carregue o <strong>XML da NF-e</strong> para preencher o endereço da loja automaticamente.</div></div>';
+  document.getElementById('loja-preview-actions').style.display='none';
+  document.getElementById('loja-preview-status').textContent='Aguardando';
+  document.getElementById('loja-preview-status').className='preview-status ps-empty';
+  if(lojaXmlFila.length){carregarProximoXMLLoja();showToast(`📄 Próximo XML: ${lojaXmlFila[0].name}`,'info');}
+  else{limparZonaXMLLoja();showToast('✅ Todos os XMLs processados!','success');}
+}
+function onCepInputLoja(input){
+  formatCEP(input);gerarEtiquetaLojaAuto();
+  clearTimeout(lojaCepTimer);
+  const cep=input.value.replace(/\D/g,'');
+  if(cep.length===8){document.getElementById('loja-cep-status').textContent='🔍 Buscando...';lojaCepTimer=setTimeout(()=>{
+    fetch(`https://viacep.com.br/ws/${cep}/json/`).then(r=>r.json()).then(data=>{
+      if(data.erro){document.getElementById('loja-cep-status').textContent='❌ CEP não encontrado';return;}
+      const setIfEmpty=(id,val)=>{if(val){const el=document.getElementById(id);if(!el.value.trim()){el.value=val;el.classList.add('autofilled');}}};
+      setIfEmpty('l-uf',data.uf);setIfEmpty('l-cidade',data.localidade);setIfEmpty('l-bairro',data.bairro);setIfEmpty('l-logradouro',data.logradouro);
+      document.getElementById('loja-cep-status').textContent=`✅ ${data.localidade||''}/${data.uf||''}`;
+      gerarEtiquetaLojaAuto();
+    }).catch(()=>document.getElementById('loja-cep-status').textContent='⚠️ Sem conexão');
+  },400);}
+  else{document.getElementById('loja-cep-status').textContent='';}
+}
+function getFormDataLoja(){
+  return{
+    destNome:document.getElementById('l-nome').value.trim(),
+    ac:document.getElementById('l-ac').value.trim(),
+    logradouro:document.getElementById('l-logradouro').value.trim(),
+    numero:document.getElementById('l-numero').value.trim(),
+    complemento:document.getElementById('l-complemento').value.trim(),
+    bairro:document.getElementById('l-bairro').value.trim(),
+    cidade:document.getElementById('l-cidade').value.trim(),
+    uf:document.getElementById('l-uf').value.trim().toUpperCase(),
+    cep:document.getElementById('l-cep').value.trim(),
+    nf:document.getElementById('l-nf').value.trim(),
+    os:document.getElementById('l-os').value.trim(),
+    obs:document.getElementById('l-obs').value.trim(),
+    chave:document.getElementById('l-chave').value.trim(),
+    docDest:document.getElementById('l-doc-dest').value.trim(),
+    valorDeclarado:document.getElementById('l-valor').value.trim(),
+    peso:'',altura:'',largura:'',comprimento:''
+  };
+}
+function gerarEtiquetaLojaAuto(){
+  clearTimeout(lojaAutoTimer);lojaAutoTimer=setTimeout(()=>{const d=getFormDataLoja();if(d.destNome&&d.cep)gerarEtiquetaLoja(true);},300);
+}
+function gerarEtiquetaLoja(silent=false){
+  const d=getFormDataLoja();
+  if(!d.destNome){if(!silent)alert('Informe o nome do destinatário.');return;}
+  if(!d.cep){if(!silent)alert('Informe o CEP.');return;}
+  const rem=getRemetente();
+  const remStr=rem.nome?`${rem.nome}${rem.cnpj?' &nbsp;|&nbsp; CNPJ: '+rem.cnpj:''}<br>${rem.end||''}${rem.num?', '+rem.num:''}${rem.comp?' '+rem.comp:''} — ${rem.bairro||''} — ${rem.cidade||''}${rem.uf?'/'+rem.uf:''} — CEP: ${rem.cep||''}`:'<em style="opacity:.7">Configure o remetente</em>';
+  const endLine=[d.logradouro,d.numero,d.complemento].filter(Boolean).join(', ');
+  document.getElementById('loja-preview-area').innerHTML=`
+    <div class="etiqueta-box">
+      <div class="etiqueta-rem"><strong>REMETENTE</strong><br>${remStr}</div>
+      <div class="etiqueta-dest">
+        ${d.ac?`<div class="etiqueta-ac">${d.ac}</div>`:''}
+        <div class="etiqueta-nome">${d.destNome.toUpperCase()}</div>
+        <div class="etiqueta-end">${endLine?endLine+'<br>':''}${d.bairro?d.bairro+' — ':''}${d.cidade}${d.uf?'/'+d.uf:''}</div>
+        <div class="etiqueta-cep">CEP: ${d.cep}</div>
+        ${(d.nf||d.os||d.chave)?`<div class="etiqueta-nf">${d.nf?'📄 NF: '+d.nf+'&nbsp;&nbsp;':''}${d.os?'🔧 OS: '+d.os+'&nbsp;&nbsp;':''}${d.chave?'<br>🔑 '+d.chave:''}</div>`:''}
+      </div>
+    </div>`;
+  document.getElementById('loja-preview-actions').style.display='flex';
+  document.getElementById('loja-preview-status').textContent='Pronta';
+  document.getElementById('loja-preview-status').className='preview-status ps-ready';
+}
+function copiarEtiquetaLoja(){
+  const d=getFormDataLoja();const rem=getRemetente();
+  const endLine=[d.logradouro,d.numero,d.complemento].filter(Boolean).join(', ');
+  const txt=`REMETENTE: ${rem.nome||''} | ${rem.end||''}, ${rem.num||''} — ${rem.cidade||''}/${rem.uf||''} — CEP: ${rem.cep||''}\n---\n${d.ac?d.ac+'\n':''}${d.destNome.toUpperCase()}\n${endLine}\n${d.bairro?d.bairro+' — ':''}${d.cidade}/${d.uf}\nCEP: ${d.cep}\n${d.nf?'NF: '+d.nf:''}${d.os?' | OS: '+d.os:''}\n${d.chave?'Chave: '+d.chave:''}`.trim();
+  navigator.clipboard.writeText(txt).then(()=>showToast('✅ Copiado!','success'));
+}
+function salvarHistoricoLoja(){
+  const d=getFormDataLoja();
+  if(!d.destNome||!d.cep){showToast('⚠️ Preencha nome e CEP.','warning');return;}
+  const modal=document.getElementById('confirm-modal');
+  document.getElementById('cm-nome').textContent=d.destNome||'—';
+  document.getElementById('cm-nf').textContent=d.nf?'NF '+d.nf:'—';
+  document.getElementById('cm-cep').textContent=d.cep||'—';
+  document.getElementById('cm-cidade').textContent=(d.cidade||'')+(d.uf?'/'+d.uf:'');
+  document.getElementById('cm-end').textContent=[d.logradouro,d.numero,d.complemento].filter(Boolean).join(', ')||'—';
+  modal.style.display='flex';
+  modal._data=d;
+  modal._afterSave=()=>{
+    if(lojaXmlFila.length>0)avancarXMLFilaLoja();
+    else setTimeout(()=>{const el=document.getElementById('l-nome');if(el){el.focus();}},80);
+  };
+}
+function limparTudoLoja(){
+  ['l-nome','l-logradouro','l-numero','l-complemento','l-bairro','l-cidade','l-uf','l-cep','l-ac','l-nf','l-os','l-obs','l-chave','l-doc-dest','l-valor']
+    .forEach(id=>{const el=document.getElementById(id);if(el){el.value='';el.classList.remove('autofilled');}});
+  document.getElementById('loja-cep-status').textContent='';
+  document.getElementById('loja-preview-area').innerHTML='<div class="preview-placeholder"><div class="pp-icon">🏪</div><div class="pp-text">Carregue o <strong>XML da NF-e</strong> para preencher o endereço da loja automaticamente.</div></div>';
+  document.getElementById('loja-preview-actions').style.display='none';
+  document.getElementById('loja-preview-status').textContent='Aguardando';
+  document.getElementById('loja-preview-status').className='preview-status ps-empty';
+  lojaNfData={};document.getElementById('loja-nf-parsed').style.display='none';
+  limparZonaXMLLoja();
+  showToast('🗑️ Campos limpos','info');
+}
 init();
 renderDashboard();
 </script>
