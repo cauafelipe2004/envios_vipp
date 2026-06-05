@@ -1,0 +1,1343 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Etiquetas Correios</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --blue:#3b82f6;--blue-light:#1e3a5f;--blue-mid:#60a5fa;--blue-dark:#93c5fd;
+  --green:#22c55e;--green-light:#14321f;
+  --red:#f87171;--red-light:#3b1515;
+  --amber:#fbbf24;--amber-light:#3b2a0a;
+  --purple:#a78bfa;--purple-light:#2e1f4a;
+  --bg:#0d1117;--surface:#161b22;--border:#21262d;--border-hover:#30363d;
+  --text:#e6edf3;--muted:#8b949e;--hint:#484f58;
+  --radius:16px;--radius-sm:10px;--radius-xs:6px;
+  --shadow:0 1px 3px rgba(0,0,0,.4),0 1px 2px rgba(0,0,0,.3);
+  --shadow-md:0 4px 16px rgba(0,0,0,.5);
+}
+
+body{font-family:'Sora',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;font-size:14px;line-height:1.5;color-scheme:dark}
+
+/* ── HEADER ── */
+.header{
+  background:#010409;
+  border-bottom:1px solid var(--border);
+  color:#fff;padding:0 28px;height:56px;
+  display:flex;align-items:center;justify-content:space-between;
+  position:sticky;top:0;z-index:200;
+  box-shadow:0 1px 0 var(--border);
+}
+.header-brand{display:flex;align-items:center;gap:12px}
+.header-icon{width:34px;height:34px;background:rgba(255,255,255,.15);border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:17px;border:1px solid rgba(255,255,255,.2)}
+.header-title{font-size:15px;font-weight:700;letter-spacing:-.2px}
+.header-sub{font-size:11px;opacity:.55;margin-top:1px}
+.header-right{display:flex;align-items:center;gap:10px}
+.header-badge{font-size:11px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);padding:4px 10px;border-radius:20px;letter-spacing:.2px;font-weight:500}
+.header-stats{display:flex;gap:14px}
+.hs-item{text-align:center}
+.hs-num{font-size:16px;font-weight:700;line-height:1}
+.hs-lbl{font-size:10px;opacity:.6;margin-top:2px}
+
+/* ── LAYOUT ── */
+.main{max-width:1280px;margin:0 auto;padding:22px 20px}
+
+/* ── TABS ── */
+.nav-tabs{display:flex;gap:2px;margin-bottom:20px;background:var(--surface);border-radius:var(--radius);border:1px solid var(--border);padding:4px;width:fit-content;box-shadow:var(--shadow-md)}
+.tab{padding:7px 16px;font-size:13px;font-weight:500;cursor:pointer;border-radius:var(--radius-sm);color:var(--muted);border:none;background:transparent;transition:.15s;display:flex;align-items:center;gap:6px;font-family:inherit}
+.tab.active{background:var(--blue);color:#fff;box-shadow:0 0 12px rgba(59,130,246,.35)}
+.tab:not(.active):hover{background:rgba(59,130,246,.12);color:var(--blue-mid)}
+.tab-badge{background:rgba(255,255,255,.25);color:inherit;font-size:10px;font-weight:700;padding:1px 6px;border-radius:10px;min-width:18px;text-align:center}
+.tab:not(.active) .tab-badge{background:rgba(59,130,246,.15);color:var(--blue-mid)}
+.tab-content{display:none}
+.tab-content.active{display:block}
+
+/* ── CARDS ── */
+.card{background:var(--surface);border-radius:var(--radius);border:1px solid var(--border);margin-bottom:14px;overflow:hidden;box-shadow:var(--shadow)}
+.card-header{padding:13px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;background:var(--surface)}
+.card-header .step-badge{width:22px;height:22px;border-radius:50%;background:var(--blue);color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.card-header h2{font-size:13px;font-weight:600;color:var(--blue-dark);flex:1}
+.card-body{padding:16px 18px}
+
+/* ── GRID GERADOR (split) ── */
+.gerador-split{display:grid;grid-template-columns:1fr 380px;gap:16px;align-items:start}
+@media(max-width:960px){.gerador-split{grid-template-columns:1fr}}
+.preview-sticky{position:sticky;top:74px}
+
+/* ── GRIDS ── */
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.grid3{display:grid;grid-template-columns:2fr 1fr 1fr;gap:10px}
+.grid2s{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.grid4{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:10px}
+@media(max-width:700px){.grid2,.grid3,.grid2s,.grid4{grid-template-columns:1fr}}
+
+/* ── FORMS ── */
+.form-group{margin-bottom:11px}
+.form-group label{display:flex;align-items:center;gap:4px;font-size:11.5px;font-weight:600;color:var(--muted);margin-bottom:5px;letter-spacing:.3px;text-transform:uppercase}
+.form-group input,.form-group select,.form-group textarea{width:100%;padding:9px 12px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:13px;font-family:inherit;color:var(--text);background:#0d1117;transition:.15s;outline:none}
+.form-group input:focus,.form-group select:focus,.form-group textarea:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(59,130,246,.15)}
+.form-group input.autofilled{background:#0f2033;border-color:#2563eb}
+.form-group textarea{resize:vertical;min-height:58px;font-size:12.5px}
+.input-hint{font-size:11px;color:var(--hint);margin-top:3px}
+
+/* ── UPLOAD ── */
+.upload-zone{border:1.5px dashed var(--border);border-radius:var(--radius);padding:18px;text-align:center;cursor:pointer;transition:.18s;position:relative}
+.upload-zone:hover,.upload-zone.drag{border-color:var(--blue);background:rgba(59,130,246,.08)}
+.upload-zone input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%}
+.upload-zone .uz-icon{font-size:24px;margin-bottom:5px}
+.upload-zone .uz-label{font-size:13px;font-weight:500;color:var(--muted)}
+.upload-zone .uz-sub{font-size:11px;color:var(--hint);margin-top:2px}
+.upload-zone.success{border-color:var(--green);background:rgba(34,197,94,.08);border-style:solid}
+.upload-zone.success .uz-label{color:var(--green)}
+.count-badge{display:inline-flex;align-items:center;gap:5px;margin-top:7px;padding:3px 10px;background:var(--blue-light);border-radius:20px;font-size:12px;font-weight:500;color:var(--blue)}
+
+/* ── AUTOCOMPLETE ── */
+.autocomplete-wrap{position:relative}
+.autocomplete-list{position:absolute;top:calc(100% + 2px);left:0;right:0;z-index:300;background:var(--surface);border:1.5px solid var(--blue);border-radius:var(--radius-sm);max-height:220px;overflow-y:auto;box-shadow:var(--shadow-md)}
+.autocomplete-list .ac-item{padding:9px 13px;cursor:pointer;font-size:13px;border-bottom:1px solid var(--border)}
+.autocomplete-list .ac-item:last-child{border-bottom:none}
+.autocomplete-list .ac-item:hover{background:var(--blue-light)}
+.autocomplete-list .ac-item em{font-style:normal;color:var(--blue);font-weight:600}
+.autocomplete-list .ac-loc{font-size:11px;color:var(--hint);margin-left:6px}
+
+/* ── ETIQUETA PREVIEW ── */
+.preview-wrapper{background:var(--surface);border-radius:var(--radius);border:1px solid var(--border);overflow:hidden;box-shadow:var(--shadow)}
+.preview-header{padding:11px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:linear-gradient(to right,#f8faff,var(--surface))}
+.preview-title{font-size:13px;font-weight:600;color:var(--blue-dark);display:flex;align-items:center;gap:7px}
+.preview-status{font-size:11px;padding:3px 9px;border-radius:20px;font-weight:600}
+.ps-empty{background:#f1f5f9;color:var(--hint)}
+.ps-ready{background:var(--green-light);color:var(--green)}
+.preview-body{padding:16px}
+
+.etiqueta-box{border:1.5px solid rgba(147,197,253,.3);border-radius:var(--radius);font-family:'JetBrains Mono',monospace;font-size:11.5px;line-height:1.8;background:#0d1117;overflow:hidden}
+.etiqueta-rem{background:rgba(59,130,246,.18);border-bottom:1px solid rgba(147,197,253,.2);color:#93c5fd;padding:10px 14px;font-size:10.5px;line-height:1.6}
+.etiqueta-rem strong{font-size:11.5px;letter-spacing:.5px;font-family:'Sora',sans-serif;font-weight:700}
+.etiqueta-dest{padding:13px 14px}
+.etiqueta-ac{font-size:10.5px;color:var(--muted);margin-bottom:2px;font-style:italic}
+.etiqueta-nome{font-size:15px;font-weight:700;color:var(--blue-mid);letter-spacing:.3px;font-family:'Sora',sans-serif}
+.etiqueta-end{font-size:12px;margin-top:4px;color:var(--text)}
+.etiqueta-cep{font-size:18px;font-weight:700;color:var(--red);margin-top:8px;letter-spacing:2px;font-family:'JetBrains Mono',monospace;text-shadow:0 0 20px rgba(248,113,113,.3)}
+.etiqueta-nf{margin-top:10px;padding-top:10px;border-top:1.5px dashed var(--border);font-size:10px;color:var(--muted);word-break:break-all;line-height:1.7}
+
+.preview-placeholder{text-align:center;padding:32px 16px}
+.pp-icon{font-size:36px;margin-bottom:10px;opacity:.4}
+.pp-text{font-size:13px;color:var(--hint);line-height:1.6}
+
+.preview-actions{display:flex;gap:8px;flex-wrap:wrap;padding:12px 16px;border-top:1px solid var(--border);background:rgba(255,255,255,.02)}
+
+/* ── BOTÕES ── */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:9px 18px;border-radius:var(--radius);font-size:12.5px;font-weight:600;cursor:pointer;border:none;transition:.18s;font-family:inherit;letter-spacing:.1px}
+.btn:active{transform:scale(.97)}
+.btn-primary{background:var(--blue);color:#fff;box-shadow:0 0 0 1px rgba(59,130,246,.4),0 2px 12px rgba(59,130,246,.25)}
+.btn-primary:hover{background:var(--blue-mid)}
+.btn-success{background:var(--green);color:#fff;box-shadow:0 0 0 1px rgba(34,197,94,.4),0 2px 12px rgba(34,197,94,.2)}
+.btn-success:hover{background:#15803d}
+.btn-danger{background:var(--red);color:#fff}
+.btn-danger:hover{background:#b91c1c}
+.btn-outline{background:rgba(59,130,246,.1);color:var(--blue-mid);border:1px solid rgba(59,130,246,.3)}
+.btn-outline:hover{background:var(--blue-light)}
+.btn-amber{background:var(--amber);color:#000;font-weight:700}
+.btn-amber:hover{background:var(--amber)}
+.btn-ghost{background:rgba(255,255,255,.04);color:var(--muted);border:1px solid var(--border)}
+.btn-ghost:hover{background:var(--bg)}
+.btn-purple{background:var(--purple);color:#fff}
+.btn-purple:hover{background:#6d28d9}
+.btn-sm{padding:5px 11px;font-size:11.5px}
+.btn-xs{padding:3px 8px;font-size:11px}
+.btn-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.btn-full{width:100%;justify-content:center}
+
+/* ── ALERTS ── */
+.alert{padding:10px 13px;border-radius:var(--radius-sm);font-size:13px;margin-bottom:13px;display:flex;align-items:flex-start;gap:8px;line-height:1.5}
+.alert-icon{font-size:14px;flex-shrink:0;margin-top:1px}
+.alert-info{background:rgba(59,130,246,.1);color:var(--blue-mid);border:1px solid rgba(59,130,246,.25)}
+.alert-success{background:rgba(34,197,94,.1);color:var(--green);border:1px solid rgba(34,197,94,.25)}
+.alert-warning{background:rgba(251,191,36,.1);color:var(--amber);border:1px solid rgba(251,191,36,.3)}
+.alert-danger{background:rgba(248,113,113,.1);color:var(--red);border:1px solid rgba(248,113,113,.25)}
+
+/* ── DASHBOARD ── */
+.dash-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:14px;margin-bottom:22px}
+.dash-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px 22px;box-shadow:var(--shadow-md);position:relative;overflow:hidden;transition:.2s}
+.dash-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px}
+.dc-blue::before{background:var(--blue)}
+.dc-green::before{background:var(--green)}
+.dc-amber::before{background:var(--amber)}
+.dc-purple::before{background:var(--purple)}
+.dash-card .dc-icon{font-size:24px;margin-bottom:8px}
+.dash-card .dc-num{font-size:28px;font-weight:700;line-height:1;letter-spacing:-1px}
+.dash-card .dc-lbl{font-size:11.5px;color:var(--muted);margin-top:4px;font-weight:500}
+.dash-card .dc-sub{font-size:11px;color:var(--hint);margin-top:2px}
+
+.dash-section-title{font-size:12px;font-weight:700;color:var(--muted);letter-spacing:.8px;text-transform:uppercase;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.dash-section-title::after{content:'';flex:1;height:1px;background:var(--border)}
+
+/* Timeline de etiquetas recentes no dashboard */
+.recent-list{display:flex;flex-direction:column;gap:8px}
+.recent-item{display:grid;grid-template-columns:36px 1fr auto;gap:10px;align-items:center;padding:10px 14px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);cursor:pointer;transition:.15s}
+.recent-item:hover{border-color:var(--blue);background:rgba(59,130,246,.08)}
+.ri-avatar{width:36px;height:36px;border-radius:10px;background:rgba(59,130,246,.15);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:var(--blue-mid);flex-shrink:0}
+.ri-name{font-size:13px;font-weight:600;color:var(--text)}
+.ri-sub{font-size:11.5px;color:var(--muted)}
+.ri-date{font-size:11px;color:var(--hint);text-align:right;white-space:nowrap}
+.ri-badge{display:inline-block;padding:2px 7px;border-radius:10px;font-size:10.5px;font-weight:600;background:var(--green-light);color:var(--green);margin-top:2px}
+
+/* ── HISTÓRICO ── */
+.hist-table{width:100%;border-collapse:collapse;font-size:13px}
+.hist-table th{background:var(--blue-dark);color:#fff;padding:9px 12px;text-align:left;font-weight:600;font-size:11.5px;letter-spacing:.4px;text-transform:uppercase}
+.hist-table td{padding:9px 12px;border-bottom:1px solid var(--border);vertical-align:middle}
+.hist-table tr:last-child td{border-bottom:none}
+.hist-table tr:hover td{background:rgba(59,130,246,.06)}
+
+.badge{display:inline-block;padding:2px 9px;border-radius:20px;font-size:11px;font-weight:600}
+.badge-blue{background:var(--blue-light);color:var(--blue)}
+.badge-green{background:var(--green-light);color:var(--green)}
+.badge-gray{background:rgba(255,255,255,.06);color:var(--muted)}
+
+/* ── SAVED ── */
+.saved-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px;margin-bottom:14px}
+.saved-card{border:1.5px solid var(--border);border-radius:var(--radius);padding:12px 13px;cursor:pointer;transition:.15s;position:relative;background:var(--surface)}
+.saved-card:hover{border-color:var(--blue);background:rgba(59,130,246,.08)}
+.sc-name{font-weight:700;font-size:13px;color:var(--text);margin-bottom:4px}
+.sc-addr{font-size:12px;color:var(--muted);line-height:1.6}
+.sc-del{position:absolute;top:8px;right:8px;width:20px;height:20px;border-radius:50%;background:var(--red-light);color:var(--red);font-size:11px;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;opacity:0;transition:.15s}
+.saved-card:hover .sc-del{opacity:1}
+.no-saved{text-align:center;padding:24px;color:var(--hint);font-size:13px;border:1px dashed var(--border);border-radius:var(--radius)}
+
+/* ── NF PARSED ── */
+.nf-parsed{background:rgba(59,130,246,.08);border:1px solid rgba(59,130,246,.25);border-radius:var(--radius-sm);padding:10px 13px;margin-top:10px}
+.nf-row{display:flex;gap:16px;flex-wrap:wrap;margin-bottom:3px}
+.nf-kv{flex:1;min-width:110px}
+.nf-kv span{display:block;font-size:10.5px;color:var(--hint);font-weight:600;text-transform:uppercase;letter-spacing:.3px}
+.nf-kv strong{font-size:13px;color:var(--blue-dark)}
+
+/* ── SECTION DIVIDER ── */
+.section-divider{display:flex;align-items:center;gap:8px;margin:14px 0 12px;font-size:10.5px;font-weight:700;color:var(--muted);letter-spacing:.6px;text-transform:uppercase}
+.section-divider::before,.section-divider::after{content:'';flex:1;height:1px;background:var(--border)}
+
+/* ── EXPORTAR PREVIEW ── */
+.export-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px;margin-bottom:16px}
+.export-etiqueta-mini{border:1.5px solid var(--border);border-radius:var(--radius-sm);overflow:hidden;transition:.15s}
+.export-etiqueta-mini:hover{border-color:var(--blue);box-shadow:var(--shadow-md)}
+.eem-header{background:var(--blue-dark);color:#fff;padding:7px 10px;font-size:10px;font-family:'JetBrains Mono',monospace}
+.eem-body{padding:9px 10px}
+.eem-nome{font-weight:700;font-size:12px;color:var(--blue-dark)}
+.eem-end{font-size:11px;color:var(--muted);margin-top:2px;line-height:1.5}
+.eem-cep{font-size:13px;font-weight:700;color:var(--red);margin-top:4px;font-family:'JetBrains Mono',monospace;letter-spacing:1px}
+.eem-nf{font-size:10px;color:var(--hint);margin-top:4px}
+
+/* ── PRINT ── */
+@media print{
+  .no-print{display:none!important}
+  body{background:#fff}
+  .header{background:#0f172a!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .etiqueta-rem{background:var(--blue-dark)!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .gerador-split{grid-template-columns:1fr}
+  .preview-wrapper{box-shadow:none;border:none}
+}
+
+/* ── NF CHIPS DASHBOARD ── */
+.nf-chips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:4px}
+.nf-chip{display:flex;align-items:center;gap:8px;padding:7px 12px;background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius-sm);cursor:pointer;transition:.15s;font-size:12.5px}
+.nf-chip:hover{border-color:var(--blue);background:rgba(59,130,246,.1)}
+.nf-chip-num{font-weight:700;color:var(--blue-dark);font-family:'JetBrains Mono',monospace;font-size:13px}
+.nf-chip-dest{color:var(--muted);font-size:11.5px;max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.nf-chip-loc{font-size:10.5px;color:var(--hint)}
+.nf-chip-dot{width:7px;height:7px;border-radius:50%;background:var(--green);flex-shrink:0}
+
+@keyframes modalIn{from{opacity:0;transform:scale(.96) translateY(8px)}to{opacity:1;transform:scale(1) translateY(0)}}
+/* ── HEADER EXPORT BTN ── */
+#hdr-export-btn:hover{background:rgba(34,197,94,.25)!important;border-color:rgba(34,197,94,.6)!important;transform:translateY(-1px)}
+/* ── SHORTCUT HINTS ── */
+.kbd{display:inline-flex;align-items:center;gap:2px;padding:1px 6px;background:rgba(255,255,255,.08);border:1px solid var(--border);border-radius:5px;font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--hint);vertical-align:middle}
+/* ── TOAST ── */
+#_toast{position:fixed;bottom:24px;right:24px;z-index:9999;padding:11px 18px;border-radius:var(--radius-sm);font-size:13px;font-family:'Sora',sans-serif;font-weight:600;opacity:0;transition:opacity .2s;pointer-events:none;box-shadow:var(--shadow-md)}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-brand">
+    <div class="header-icon">📦</div>
+    <div>
+      <div class="header-title">Etiquetas Correios</div>
+      <div class="header-sub">Geração e exportação de envios</div>
+    </div>
+  </div>
+  <div class="header-right no-print">
+    <div class="header-stats">
+      <div class="hs-item">
+        <div class="hs-num" id="hdr-total">0</div>
+        <div class="hs-lbl">Total</div>
+      </div>
+      <div class="hs-item">
+        <div class="hs-num" id="hdr-hoje">0</div>
+        <div class="hs-lbl">Hoje</div>
+      </div>
+    </div>
+    <button id="hdr-export-btn" onclick="exportarCorreios()" style="display:none;align-items:center;gap:7px;padding:6px 14px;background:rgba(34,197,94,.15);border:1px solid rgba(34,197,94,.35);border-radius:var(--radius);color:#4ade80;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;transition:.18s" title="Exportar para Correios">&#8595; Exportar <span id="hdr-export-count" style="background:rgba(34,197,94,.25);padding:1px 7px;border-radius:10px;font-size:11px"></span></button>
+    <div class="header-badge">v4.0</div>
+  </div>
+</div>
+
+<div class="main">
+
+  <div class="nav-tabs no-print">
+    <button class="tab" onclick="showTab('dashboard',this)">Dashboard</button>
+    <button class="tab active" onclick="showTab('gerador',this)">Gerar Etiqueta</button>
+    <button class="tab" onclick="showTab('enderecos',this)">Endereços</button>
+    <button class="tab" onclick="showTab('historico',this)">Histórico <span class="tab-badge" id="hist-badge">0</span></button>
+    <button class="tab" onclick="showTab('config',this)">Remetente</button>
+  </div>
+
+  <!-- ══ DASHBOARD ══ -->
+  <div id="tab-dashboard" class="tab-content">
+    <div class="dash-grid">
+      <div class="dash-card dc-blue">
+        <div class="dc-icon">📦</div>
+        <div class="dc-num" id="d-total">0</div>
+        <div class="dc-lbl">Total de etiquetas</div>
+        <div class="dc-sub">no histórico</div>
+      </div>
+      <div class="dash-card dc-green">
+        <div class="dc-icon">📅</div>
+        <div class="dc-num" id="d-hoje">0</div>
+        <div class="dc-lbl">Geradas hoje</div>
+        <div class="dc-sub" id="d-hoje-data">—</div>
+      </div>
+      <div class="dash-card dc-amber">
+        <div class="dc-icon">📋</div>
+        <div class="dc-num" id="d-semana">0</div>
+        <div class="dc-lbl">Última semana</div>
+        <div class="dc-sub">últimos 7 dias</div>
+      </div>
+      <div class="dash-card dc-purple">
+        <div class="dc-icon">🗺️</div>
+        <div class="dc-num" id="d-estados">0</div>
+        <div class="dc-lbl">Estados atendidos</div>
+        <div class="dc-sub" id="d-estados-list">—</div>
+      </div>
+    </div>
+
+    <div class="dash-section-title">Notas Fiscais
+      <span id="clear-export-btn" onclick="limparUltimoExport()" style="display:none;margin-left:8px;font-size:10px;font-weight:600;color:var(--hint);cursor:pointer;background:var(--bg);border:1px solid var(--border);padding:2px 8px;border-radius:20px;text-transform:none;letter-spacing:0" title="Limpar registro do último export">✕ limpar export</span>
+    </div>
+    <div id="nf-list-wrapper"></div>
+
+    <div class="dash-section-title" style="margin-top:18px">Etiquetas recentes</div>
+    <div id="recent-list-wrapper">
+      <div class="alert alert-info"><span class="alert-icon">ℹ️</span><span>Nenhuma etiqueta gerada ainda. <strong>Clique em "Gerar Etiqueta"</strong> para começar.</span></div>
+    </div>
+    <div style="margin-top:14px;display:flex;gap:10px">
+      <button class="btn btn-primary" onclick="showTab('gerador',document.querySelectorAll('.tab')[1])">+ Gerar nova etiqueta</button>
+      <button class="btn btn-outline" id="dash-export-btn" onclick="exportarCorreios()" style="display:none">↓ Exportar tudo</button>
+      <button class="btn btn-ghost btn-sm" style="margin-left:auto" onclick="zerarStats()" title="Zerar contadores do dashboard">↺ Zerar estatísticas</button>
+    </div>
+  </div>
+
+  <!-- ══ GERADOR ══ -->
+  <div id="tab-gerador" class="tab-content active">
+    <div class="gerador-split">
+
+      <!-- Coluna esquerda: formulário -->
+      <div>
+        <div class="card">
+          <div class="card-header">
+            <span class="step-badge">1</span>
+            <h2>Arquivos</h2>
+            <span id="tec-saved-pill" style="display:none;font-size:10.5px;background:var(--green-light);color:var(--green);padding:2px 9px;border-radius:20px;font-weight:600;margin-left:auto">💾 Base salva</span>
+          </div>
+          <div class="card-body">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+              <div>
+                <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-bottom:6px">📊 Técnicos (Excel)</div>
+                <div class="upload-zone" id="zone-excel" style="padding:14px 10px">
+                  <input type="file" accept=".xlsx,.xls" onchange="loadExcel(this)" />
+                  <div class="uz-icon" style="font-size:20px;margin-bottom:3px">📊</div>
+                  <div class="uz-label" id="excel-label" style="font-size:12px">Clique ou arraste</div>
+                  <div class="uz-sub" style="font-size:10.5px">Salvo automaticamente</div>
+                </div>
+                <div id="tecnicos-count"></div>
+              </div>
+              <div>
+                <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-bottom:6px">📄 XML da NF-e <span style="font-weight:400;color:var(--hint)">(opcional)</span></div>
+                <div class="upload-zone" id="zone-xml" style="padding:14px 10px">
+                  <input type="file" accept=".xml" multiple onchange="adicionarXMLs(this)" />
+                  <div class="uz-icon" style="font-size:20px;margin-bottom:3px">📄</div>
+                  <div class="uz-label" id="xml-label" style="font-size:12px">Clique ou arraste</div>
+                  <div class="uz-sub" style="font-size:10.5px">Vários XMLs em fila</div>
+                </div>
+              </div>
+            </div>
+            <div id="xml-fila" style="display:none;margin-top:10px"></div>
+            <div id="nf-parsed" style="display:none"></div>
+            <div id="proxima-nf-bar" style="display:none;margin-top:12px">
+              <button class="btn btn-primary btn-full" style="justify-content:center;gap:10px;font-size:13.5px;padding:11px" onclick="avancarXMLFila()">
+                ➡️ Próxima NF <span id="proxima-nf-count" style="background:rgba(255,255,255,.25);padding:1px 8px;border-radius:10px;font-size:11.5px"></span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header"><span class="step-badge">2</span><h2>Destinatário</h2></div>
+          <div class="card-body">
+            <div class="form-group autocomplete-wrap">
+              <label>Nome / buscar técnico</label>
+              <input type="text" id="input-tecnico" placeholder="Digite o nome ou busque na planilha..." oninput="buscarTecnico(this.value)" autocomplete="off" />
+              <div class="autocomplete-list" id="autocomplete-list" style="display:none"></div>
+            </div>
+            <div class="grid3">
+              <div class="form-group"><label>Logradouro</label><input type="text" id="t-logradouro" oninput="gerarEtiquetaAuto()" /></div>
+              <div class="form-group"><label>Número</label><input type="text" id="t-numero" oninput="gerarEtiquetaAuto()" /></div>
+              <div class="form-group"><label>Complemento</label><input type="text" id="t-complemento" oninput="gerarEtiquetaAuto()" /></div>
+            </div>
+            <div class="grid3">
+              <div class="form-group"><label>Bairro</label><input type="text" id="t-bairro" oninput="gerarEtiquetaAuto()" /></div>
+              <div class="form-group"><label>Cidade</label><input type="text" id="t-cidade" oninput="gerarEtiquetaAuto()" /></div>
+              <div class="form-group"><label>UF</label><input type="text" id="t-uf" maxlength="2" style="text-transform:uppercase" oninput="gerarEtiquetaAuto()" /></div>
+            </div>
+            <div class="grid2s">
+              <div class="form-group">
+                <label>CEP</label>
+                <input type="text" id="t-cep" placeholder="00000-000" oninput="onCepInput(this)" />
+                <div class="input-hint" id="cep-status"></div>
+              </div>
+              <div class="form-group"><label>A/C (Aos Cuidados)</label><input type="text" id="t-ac" placeholder="A/C GERENTE ADM" oninput="gerarEtiquetaAuto()" /></div>
+            </div>
+            <button class="btn btn-ghost btn-sm" onclick="salvarEnderecoAtual()">💾 Salvar endereço</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header"><span class="step-badge">3</span><h2>Dados do Envio</h2></div>
+          <div class="card-body">
+            <div class="grid2s">
+              <div class="form-group"><label>Número da NF</label><input type="text" id="d-nf" placeholder="Ex: 000001" oninput="gerarEtiquetaAuto()" /></div>
+              <div class="form-group"><label>Pedido / OS</label><input type="text" id="d-os" placeholder="Ex: OS-2024-001" oninput="gerarEtiquetaAuto()" /></div>
+            </div>
+            <div class="form-group"><label>Chave NF-e <span style="font-weight:400;color:var(--hint);font-size:10px">(44 dígitos)</span></label><input type="text" id="d-chave" placeholder="44 dígitos" maxlength="44" oninput="gerarEtiquetaAuto()" /></div>
+            <div class="form-group"><label>Doc. Destinatário <span style="font-weight:400;color:var(--hint);font-size:10px">(CPF/CNPJ)</span></label><input type="text" id="d-doc-dest" placeholder="000.000.000-00" maxlength="20" /></div>
+            <button type="button" class="accordion-toggle" id="dim-toggle" onclick="toggleDimensoes()" style="width:100%;display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:var(--bg);border:1.5px solid var(--border);border-radius:var(--radius-sm);cursor:pointer;font-size:12.5px;font-weight:600;color:var(--muted);margin-bottom:4px;transition:.15s;font-family:inherit">
+              <span>📦 Dimensões <span style="font-weight:400;font-size:11px">(opcional)</span></span>
+              <span id="dim-arrow" style="font-size:11px;transition:.2s">▼</span>
+            </button>
+            <div id="dim-body" style="display:none;margin-bottom:8px">
+              <div class="grid4">
+                <div class="form-group"><label>Peso (g)</label><input type="number" id="d-peso" placeholder="100" min="0" /></div>
+                <div class="form-group"><label>Altura (cm)</label><input type="number" id="d-altura" placeholder="10" min="0" /></div>
+                <div class="form-group"><label>Largura (cm)</label><input type="number" id="d-largura" placeholder="20" min="0" /></div>
+                <div class="form-group"><label>Comprimento</label><input type="number" id="d-comprimento" placeholder="30" min="0" /></div>
+              </div>
+            </div>
+            <div class="form-group"><label>Observações internas</label><textarea id="d-obs" placeholder="Notas internas (não exportadas)..."></textarea></div>
+            <div class="btn-row">
+              <button class="btn btn-primary" onclick="gerarEtiqueta()">🏷️ Gerar Etiqueta</button>
+              <button class="btn btn-ghost" onclick="limparTudo()">🗑️ Limpar</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Coluna direita: preview sticky -->
+      <div class="preview-sticky no-print">
+        <div class="preview-wrapper">
+          <div class="preview-header">
+            <div class="preview-title">👁️ Pré-visualização</div>
+            <span class="preview-status ps-empty" id="preview-status">Aguardando</span>
+          </div>
+          <div class="preview-body" id="preview-area">
+            <div class="preview-placeholder">
+              <div class="pp-icon">🏷️</div>
+              <div class="pp-text">Preencha o <strong>nome</strong> e o <strong>CEP</strong> do destinatário para ver a etiqueta em tempo real.</div>
+            </div>
+          </div>
+          <div class="preview-actions" id="preview-actions" style="display:none">
+            <button class="btn btn-success btn-sm" onclick="imprimirEtiqueta()">🖨️ Imprimir</button>
+            <button class="btn btn-outline btn-sm" onclick="copiarEtiqueta()">📋 Copiar</button>
+            <button class="btn btn-amber btn-sm" onclick="salvarHistorico()">💾 Salvar <span class="kbd">Ctrl S</span></button>
+          </div>
+        </div>
+
+
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ══ ENDEREÇOS ══ -->
+  <div id="tab-enderecos" class="tab-content">
+    <div class="card">
+      <div class="card-header"><h2>📌 Endereços Salvos</h2></div>
+      <div class="card-body">
+        <div class="alert alert-info"><span class="alert-icon">ℹ️</span><span>Clique para carregar no formulário. Para salvar, preencha o destinatário e clique em <strong>"Salvar endereço"</strong> na aba Gerar.</span></div>
+        <div id="saved-grid" class="saved-grid"></div>
+        <div id="saved-actions" style="display:none"><button class="btn btn-danger btn-sm" onclick="limparEnderecos()">🗑️ Limpar todos</button></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ HISTÓRICO ══ -->
+  <div id="tab-historico" class="tab-content">
+    <div class="card">
+      <div class="card-header"><h2>📋 Histórico de Envios</h2></div>
+      <div class="card-body">
+        <div id="historico-filtros" style="display:none;margin-bottom:14px">
+          <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+            <input type="text" id="hist-busca" placeholder="🔍 Buscar por nome, NF, CEP, cidade..." oninput="renderHistorico()" style="flex:1;min-width:180px;padding:8px 12px;border:1.5px solid var(--border);border-radius:var(--radius-sm);font-size:13px;font-family:inherit;outline:none" />
+            <select id="hist-ordem" onchange="renderHistorico()" style="padding:8px 12px;border:1.5px solid var(--border);border-radius:var(--radius-sm);font-size:13px;font-family:inherit;color:var(--text);background:var(--surface);outline:none;cursor:pointer">
+              <option value="data-desc">Mais recentes</option>
+              <option value="data-asc">Mais antigos</option>
+              <option value="nf-asc">NF ↑ crescente</option>
+              <option value="nf-desc">NF ↓ decrescente</option>
+              <option value="nome-asc">Nome A→Z</option>
+              <option value="nome-desc">Nome Z→A</option>
+            </select>
+          </div>
+        </div>
+        <div id="historico-content"></div>
+        <div class="btn-row" id="historico-actions" style="display:none"><button class="btn btn-danger btn-sm" onclick="limparHistorico()">🗑️ Limpar histórico</button></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- hidden stubs so renderExportar() doesn't break -->
+  <div id="tab-exportar" style="display:none">
+    <div id="exportar-content"></div>
+    <div id="exportar-btn"></div>
+    <div id="exportar-preview-section"></div>
+    <div id="exportar-etiquetas-grid"></div>
+  </div>
+
+  <!-- ══ REMETENTE ══ -->
+  <div id="tab-config" class="tab-content">
+    <div class="card">
+      <div class="card-header"><h2>🏢 Dados do Remetente</h2></div>
+      <div class="card-body">
+        <p style="font-size:13px;color:var(--muted);margin-bottom:16px">Aparecem na etiqueta e no campo "Documento Remetente" na exportação.</p>
+        <div class="grid2s">
+          <div class="form-group"><label>Nome / Empresa</label><input type="text" id="rem-nome" placeholder="Sua Empresa LTDA" /></div>
+          <div class="form-group"><label>CNPJ / CPF</label><input type="text" id="rem-cnpj" placeholder="00.000.000/0001-00" /></div>
+        </div>
+        <div class="grid3">
+          <div class="form-group"><label>Logradouro</label><input type="text" id="rem-end" /></div>
+          <div class="form-group"><label>Número</label><input type="text" id="rem-num" /></div>
+          <div class="form-group"><label>Complemento</label><input type="text" id="rem-comp" /></div>
+        </div>
+        <div class="grid3">
+          <div class="form-group"><label>Bairro</label><input type="text" id="rem-bairro" /></div>
+          <div class="form-group"><label>Cidade</label><input type="text" id="rem-cidade" /></div>
+          <div class="form-group"><label>UF</label><input type="text" id="rem-uf" maxlength="2" style="text-transform:uppercase" /></div>
+        </div>
+        <div class="form-group" style="max-width:180px"><label>CEP</label><input type="text" id="rem-cep" placeholder="00000-000" oninput="formatCEP(this)" /></div>
+        <div class="btn-row"><button class="btn btn-primary" onclick="salvarRemetente()">💾 Salvar remetente</button></div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /main -->
+
+<!-- ══ MODAL CONFIRMAÇÃO ══ -->
+<div id="confirm-modal" style="display:none;position:fixed;inset:0;z-index:1000;background:rgba(15,23,42,.55);backdrop-filter:blur(3px);align-items:center;justify-content:center">
+  <div style="background:var(--surface);border-radius:var(--radius);box-shadow:0 20px 60px rgba(0,0,0,.25);padding:28px;width:100%;max-width:420px;margin:20px;animation:modalIn .18s ease">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:20px">
+      <div style="width:38px;height:38px;border-radius:10px;background:var(--amber-light);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">📋</div>
+      <div>
+        <div style="font-size:15px;font-weight:700;color:var(--text)">Confirmar envio</div>
+        <div style="font-size:12px;color:var(--hint)">Verifique os dados antes de salvar</div>
+      </div>
+    </div>
+    <div style="background:var(--bg);border-radius:var(--radius-sm);padding:14px 16px;margin-bottom:20px;display:flex;flex-direction:column;gap:10px">
+      <div style="display:flex;align-items:baseline;justify-content:space-between;gap:8px">
+        <span style="font-size:11px;font-weight:700;color:var(--hint);text-transform:uppercase;letter-spacing:.4px;flex-shrink:0">Destinatário</span>
+        <span id="cm-nome" style="font-size:14px;font-weight:700;color:var(--text);text-align:right"></span>
+      </div>
+      <div style="height:1px;background:var(--border)"></div>
+      <div style="display:flex;align-items:baseline;justify-content:space-between;gap:8px">
+        <span style="font-size:11px;font-weight:700;color:var(--hint);text-transform:uppercase;letter-spacing:.4px;flex-shrink:0">NF</span>
+        <span id="cm-nf" style="font-size:13px;font-weight:600;color:var(--blue-dark);font-family:'JetBrains Mono',monospace;text-align:right"></span>
+      </div>
+      <div style="height:1px;background:var(--border)"></div>
+      <div style="display:flex;align-items:baseline;justify-content:space-between;gap:8px">
+        <span style="font-size:11px;font-weight:700;color:var(--hint);text-transform:uppercase;letter-spacing:.4px;flex-shrink:0">Endereço</span>
+        <span id="cm-end" style="font-size:12px;color:var(--muted);text-align:right"></span>
+      </div>
+      <div style="height:1px;background:var(--border)"></div>
+      <div style="display:flex;align-items:baseline;justify-content:space-between;gap:8px">
+        <span style="font-size:11px;font-weight:700;color:var(--hint);text-transform:uppercase;letter-spacing:.4px;flex-shrink:0">Cidade</span>
+        <span id="cm-cidade" style="font-size:13px;color:var(--text);text-align:right"></span>
+      </div>
+      <div style="height:1px;background:var(--border)"></div>
+      <div style="display:flex;align-items:baseline;justify-content:space-between;gap:8px">
+        <span style="font-size:11px;font-weight:700;color:var(--hint);text-transform:uppercase;letter-spacing:.4px;flex-shrink:0">CEP</span>
+        <span id="cm-cep" style="font-size:14px;font-weight:700;color:var(--red);font-family:'JetBrains Mono',monospace;text-align:right"></span>
+      </div>
+    </div>
+    <div style="display:flex;gap:10px">
+      <button class="btn btn-ghost" style="flex:1;justify-content:center" onclick="cancelarSalvar()">✎ Corrigir <span class="kbd">Esc</span></button>
+      <button class="btn btn-success" style="flex:2;justify-content:center;font-size:14px" onclick="confirmarSalvar()">✓ Confirmar e salvar <span class="kbd">Ctrl S</span></button>
+    </div>
+  </div>
+</div>
+
+<script>
+let tecnicos=JSON.parse(localStorage.getItem('etiquetas_tecnicos')||'[]');
+let nfData={}, cepTimer=null, autoTimer=null, xmlFila=[], xmlFilaTotal=0;
+let historico=JSON.parse(localStorage.getItem('etiquetas_historico')||'[]');
+let enderecosSalvos=JSON.parse(localStorage.getItem('etiquetas_enderecos')||'[]');
+
+// ── INIT ──
+function init(){
+  carregarRemetente();
+  renderEnderecos();
+  atualizarHeaderStats();
+  renderExcelStatus();
+}
+
+function atualizarHeaderStats(){
+  const hoje=new Date().toLocaleDateString('pt-BR');
+  const totalHoje=historico.filter(h=>h.data&&h.data.startsWith(hoje)).length;
+  document.getElementById('hdr-total').textContent=historico.length;
+  document.getElementById('hdr-hoje').textContent=totalHoje;
+  document.getElementById('hist-badge').textContent=historico.length;
+  // header export button
+  const expBtn=document.getElementById('hdr-export-btn');
+  const expCnt=document.getElementById('hdr-export-count');
+  const dashExpBtn=document.getElementById('dash-export-btn');
+  if(expBtn){expBtn.style.display=historico.length?'inline-flex':'none';}
+  if(expCnt){expCnt.textContent=historico.length?historico.length+' etiqueta'+(historico.length>1?'s':''):'';}
+  if(dashExpBtn){dashExpBtn.style.display=historico.length?'inline-flex':'none';}
+}
+
+// ── TABS ──
+function showTab(name,el){
+  document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('tab-'+name).classList.add('active');
+  if(el)el.classList.add('active');
+  if(name==='historico')renderHistorico();
+  // exportar tab removed — handled via header button
+  if(name==='enderecos')renderEnderecos();
+  if(name==='dashboard')renderDashboard();
+}
+
+// ── STATS ACUMULADOR (independente do histórico) ──
+function getStats(){
+  return JSON.parse(localStorage.getItem('etiquetas_stats')||'{"total":0,"porDia":{},"estados":{}}');
+}
+function registrarStat(d){
+  const st=getStats();
+  st.total=(st.total||0)+1;
+  const dia=new Date().toLocaleDateString('pt-BR');
+  st.porDia[dia]=(st.porDia[dia]||0)+1;
+  if(d.uf) st.estados[d.uf]=(st.estados[d.uf]||0)+1;
+  localStorage.setItem('etiquetas_stats',JSON.stringify(st));
+}
+function limparUltimoExport(){
+  localStorage.removeItem('etiquetas_ultimo_export');
+  renderDashboard();
+  showToast('🗑️ Registro de export limpo','info');
+}
+function zerarStats(){
+  if(!confirm('Zerar todas as estatísticas do dashboard? Isso não apaga o histórico.')) return;
+  localStorage.removeItem('etiquetas_stats');
+  renderDashboard();
+  showToast('📊 Estatísticas zeradas','info');
+}
+
+// ── DASHBOARD ──
+function renderDashboard(){
+  const st=getStats();
+  const hoje=new Date().toLocaleDateString('pt-BR');
+  const totalHoje=st.porDia[hoje]||0;
+
+  // Soma últimos 7 dias
+  let totalSemana=0;
+  for(let i=0;i<7;i++){
+    const d=new Date(Date.now()-i*86400000).toLocaleDateString('pt-BR');
+    totalSemana+=(st.porDia[d]||0);
+  }
+  const estados=Object.keys(st.estados||{});
+
+  document.getElementById('d-total').textContent=st.total||0;
+  document.getElementById('d-hoje').textContent=totalHoje;
+  document.getElementById('d-hoje-data').textContent=hoje;
+  document.getElementById('d-semana').textContent=totalSemana;
+  document.getElementById('d-estados').textContent=estados.length;
+  document.getElementById('d-estados-list').textContent=estados.slice(0,6).join(', ')||'—';
+
+  // NFs do histórico + último export
+  const nfWrapper=document.getElementById('nf-list-wrapper');
+  const comNF=historico.filter(h=>h.nf);
+  const ultimoExport=JSON.parse(localStorage.getItem('etiquetas_ultimo_export')||'null');
+  const exportNFs=ultimoExport?ultimoExport.itens.filter(h=>h.nf):[];
+
+  let nfHTML='';
+
+  // Chips do histórico atual (pendentes)
+  if(comNF.length){
+    nfHTML+=`<div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">🕐 Pendentes (não exportadas)</div>`;
+    nfHTML+='<div class="nf-chips">'+comNF.map((h)=>{
+      const idx=historico.indexOf(h);
+      return `<div class="nf-chip" onclick="carregarDoHistorico(${idx})" title="Clique para recarregar">
+        <div class="nf-chip-dot"></div>
+        <div>
+          <div class="nf-chip-num">NF ${h.nf}</div>
+          <div class="nf-chip-dest">${h.destNome||'—'}</div>
+          <div class="nf-chip-loc">${h.cidade||''}${h.uf?'/'+h.uf:''}</div>
+        </div>
+      </div>`;
+    }).join('')+'</div>';
+  }
+
+  // Chips do último export
+  if(exportNFs.length){
+    nfHTML+=`<div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin:${comNF.length?'14px':0} 0 6px">✅ Último export — ${ultimoExport.data} (${ultimoExport.total} etiqueta(s))</div>`;
+    nfHTML+='<div class="nf-chips">'+exportNFs.map((h)=>{
+      return `<div class="nf-chip" style="opacity:.75;cursor:default" title="Exportada em ${ultimoExport.data}">
+        <div class="nf-chip-dot" style="background:var(--green)"></div>
+        <div>
+          <div class="nf-chip-num">NF ${h.nf}</div>
+          <div class="nf-chip-dest">${h.destNome||'—'}</div>
+          <div class="nf-chip-loc">${h.cidade||''}${h.uf?'/'+h.uf:''}</div>
+        </div>
+        <div style="font-size:10px;color:var(--green);font-weight:600;margin-left:4px">✓</div>
+      </div>`;
+    }).join('')+'</div>';
+  } else if(!ultimoExport && !comNF.length) {
+    nfHTML='<div style="font-size:13px;color:var(--hint);padding:8px 0 4px">Nenhuma etiqueta com NF ainda.</div>';
+  }
+
+  if(!comNF.length && ultimoExport && !exportNFs.length){
+    nfHTML+='<div style="font-size:13px;color:var(--hint);padding:8px 0 4px">Último export não tinha NFs informadas.</div>';
+  }
+
+  nfWrapper.innerHTML=nfHTML||'<div style="font-size:13px;color:var(--hint);padding:8px 0 4px">Nenhuma etiqueta com NF ainda.</div>';
+  const clearBtn=document.getElementById('clear-export-btn');
+  if(clearBtn) clearBtn.style.display=ultimoExport?'inline-block':'none';
+
+  // Recentes vem do histórico (o que ainda está salvo)
+  const wrapper=document.getElementById('recent-list-wrapper');
+  if(!historico.length){
+    wrapper.innerHTML='<div class="alert alert-info"><span class="alert-icon">ℹ️</span><span>Histórico vazio — as estatísticas acima são permanentes e não são apagadas ao limpar o histórico.</span></div>';
+    return;
+  }
+  const recentes=historico.slice(0,8);
+  wrapper.innerHTML='<div class="recent-list">'+recentes.map((h,i)=>{
+    const initials=(h.destNome||'?').split(' ').map(w=>w[0]).join('').substring(0,2).toUpperCase();
+    return `<div class="recent-item" onclick="carregarDoHistorico(${i})">
+      <div class="ri-avatar">${initials}</div>
+      <div>
+        <div class="ri-name">${h.destNome||'—'}</div>
+        <div class="ri-sub">${h.cidade||''}${h.uf?'/'+h.uf:''} — CEP ${h.cep||'—'}</div>
+        ${h.nf?`<span class="ri-badge">NF ${h.nf}</span>`:''}
+      </div>
+      <div class="ri-date">${(h.data||'').split(' ')[0]||'—'}<br><span style="font-size:10px;color:var(--hint)">${(h.data||'').split(' ')[1]||''}</span></div>
+    </div>`;
+  }).join('')+'</div>';
+}
+
+function carregarDoHistorico(i){
+  const h=historico[i];
+  document.getElementById('input-tecnico').value=h.destNome||'';
+  ['logradouro','numero','complemento','bairro','cidade','uf','cep','ac'].forEach(k=>{const el=document.getElementById('t-'+k);if(el)el.value=h[k]||'';});
+  document.getElementById('d-nf').value=h.nf||'';
+  document.getElementById('d-os').value=h.os||'';
+  document.getElementById('d-obs').value=h.obs||'';
+  document.getElementById('d-chave').value=h.chave||'';
+  document.getElementById('d-doc-dest').value=h.docDest||'';
+  document.getElementById('d-peso').value=h.peso||'';
+  document.getElementById('d-altura').value=h.altura||'';
+  document.getElementById('d-largura').value=h.largura||'';
+  document.getElementById('d-comprimento').value=h.comprimento||'';
+  showTab('gerador',document.querySelectorAll('.tab')[1]);
+  gerarEtiqueta();
+}
+
+// ── REMETENTE ──
+function carregarRemetente(){
+  const rem=JSON.parse(localStorage.getItem('etiquetas_remetente')||'{}');
+  ['nome','cnpj','end','num','comp','bairro','cidade','uf','cep'].forEach(k=>{
+    const el=document.getElementById('rem-'+k);if(el&&rem[k])el.value=rem[k];
+  });
+}
+function salvarRemetente(){
+  const rem={};
+  ['nome','cnpj','end','num','comp','bairro','cidade','uf','cep'].forEach(k=>rem[k]=document.getElementById('rem-'+k).value);
+  localStorage.setItem('etiquetas_remetente',JSON.stringify(rem));
+  showToast('✅ Remetente salvo!','success');
+}
+function getRemetente(){return JSON.parse(localStorage.getItem('etiquetas_remetente')||'{}');}
+
+// ── ENDEREÇOS ──
+function renderEnderecos(){
+  const grid=document.getElementById('saved-grid');
+  const acts=document.getElementById('saved-actions');
+  if(!enderecosSalvos.length){
+    grid.innerHTML='<div class="no-saved">Nenhum endereço salvo ainda.<br><small>Preencha um destinatário e clique em "Salvar endereço".</small></div>';
+    acts.style.display='none';return;
+  }
+  acts.style.display='block';
+  grid.innerHTML=enderecosSalvos.map((e,i)=>`
+    <div class="saved-card" onclick="carregarEndereco(${i})">
+      <button class="sc-del" onclick="event.stopPropagation();removerEndereco(${i})">✕</button>
+      <div class="sc-name">${e.destNome||'—'}</div>
+      <div class="sc-addr">
+        ${[e.logradouro,e.numero].filter(Boolean).join(', ')}<br>
+        ${e.bairro?e.bairro+' — ':''}${e.cidade||''}${e.uf?'/'+e.uf:''}<br>
+        <span style="font-weight:700;color:var(--blue)">CEP ${e.cep||'—'}</span>
+        ${e.ac?'<br><span style="color:var(--muted)">'+e.ac+'</span>':''}
+      </div>
+    </div>`).join('');
+}
+
+function salvarEnderecoAtual(){
+  const d=getFormData();
+  if(!d.destNome){showToast('⚠️ Informe o nome do destinatário.','warning');return;}
+  const entry={destNome:d.destNome,ac:d.ac,logradouro:d.logradouro,numero:d.numero,complemento:d.complemento,bairro:d.bairro,cidade:d.cidade,uf:d.uf,cep:d.cep};
+  const idx=enderecosSalvos.findIndex(e=>e.destNome===d.destNome&&e.cep===d.cep);
+  if(idx>=0){enderecosSalvos[idx]=entry;showToast('✅ Endereço atualizado!','success');}
+  else{enderecosSalvos.unshift(entry);showToast('✅ Endereço salvo!','success');}
+  localStorage.setItem('etiquetas_enderecos',JSON.stringify(enderecosSalvos));
+}
+
+function carregarEndereco(i){
+  const e=enderecosSalvos[i];
+  document.getElementById('input-tecnico').value=e.destNome||'';
+  document.getElementById('t-logradouro').value=e.logradouro||'';
+  document.getElementById('t-numero').value=e.numero||'';
+  document.getElementById('t-complemento').value=e.complemento||'';
+  document.getElementById('t-bairro').value=e.bairro||'';
+  document.getElementById('t-cidade').value=e.cidade||'';
+  document.getElementById('t-uf').value=e.uf||'';
+  document.getElementById('t-cep').value=e.cep||'';
+  document.getElementById('t-ac').value=e.ac||'A/C GERENTE ADM';
+  const faltando=!e.bairro||!e.uf||!e.cidade;
+  const cep=(e.cep||'').replace(/\D/g,'');
+  if(cep.length===8&&faltando){document.getElementById('cep-status').textContent='🔍 Buscando dados do CEP...';buscarCEP(cep);}
+  showTab('gerador',document.querySelectorAll('.tab')[1]);
+  gerarEtiqueta();
+}
+
+function removerEndereco(i){enderecosSalvos.splice(i,1);localStorage.setItem('etiquetas_enderecos',JSON.stringify(enderecosSalvos));renderEnderecos();showToast('🗑️ Endereço removido','info');}
+function limparEnderecos(){
+  const acts=document.getElementById('saved-actions');
+  acts.innerHTML=`<span style="font-size:13px;color:var(--red);font-weight:600">Apagar todos os endereços?</span>
+    <button class="btn btn-danger btn-sm" onclick="confirmarLimparEnderecos()">✓ Confirmar</button>
+    <button class="btn btn-ghost btn-sm" onclick="renderEnderecos()">Cancelar</button>`;
+}
+function confirmarLimparEnderecos(){enderecosSalvos=[];localStorage.setItem('etiquetas_enderecos',JSON.stringify(enderecosSalvos));renderEnderecos();showToast('🗑️ Endereços limpos!','info');}
+
+// ── CEP ──
+function onCepInput(input){
+  formatCEP(input);gerarEtiquetaAuto();
+  clearTimeout(cepTimer);
+  const cep=input.value.replace(/\D/g,'');
+  if(cep.length===8){document.getElementById('cep-status').textContent='🔍 Buscando...';cepTimer=setTimeout(()=>buscarCEP(cep),400);}
+  else{document.getElementById('cep-status').textContent='';}
+}
+function buscarCEP(cep,forcar=false){
+  fetch(`https://viacep.com.br/ws/${cep}/json/`)
+    .then(r=>r.json()).then(data=>{
+      if(data.erro){document.getElementById('cep-status').textContent='❌ CEP não encontrado';return;}
+      const setIfEmpty=(id,val)=>{if(val){const el=document.getElementById(id);if(forcar||!el.value.trim()){el.value=val;el.classList.add('autofilled');}}};
+      setIfEmpty('t-uf',data.uf);setIfEmpty('t-cidade',data.localidade);setIfEmpty('t-bairro',data.bairro);setIfEmpty('t-logradouro',data.logradouro);
+      document.getElementById('cep-status').textContent=`✅ ${data.localidade||''}/${data.uf||''}`;
+      gerarEtiquetaAuto();
+    }).catch(()=>document.getElementById('cep-status').textContent='⚠️ Sem conexão');
+}
+
+// ── EXCEL ──
+function renderExcelStatus(){
+  if(!tecnicos.length) return;
+  const meta=JSON.parse(localStorage.getItem('etiquetas_tecnicos_meta')||'{}');
+  document.getElementById('zone-excel').classList.add('success');
+  document.getElementById('excel-label').textContent='✅ '+(meta.nome||'Base salva');
+  const pill=document.getElementById('tec-saved-pill');if(pill)pill.style.display='inline-flex';
+  document.getElementById('tecnicos-count').innerHTML=`
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-top:6px;flex-wrap:wrap;gap:6px">
+      <span class="count-badge">👥 ${tecnicos.length} técnico(s) — salvo no navegador</span>
+      <button class="btn btn-ghost btn-sm" onclick="limparTecnicos()">🗑️ Remover base</button>
+    </div>
+    ${meta.data?`<div style="font-size:11px;color:var(--hint);margin-top:4px">Carregado em ${meta.data}</div>`:''}`;
+}
+function limparTecnicos(){
+  if(!confirm('Remover a base de técnicos salva? Você precisará carregar o Excel novamente.')) return;
+  tecnicos=[];
+  localStorage.removeItem('etiquetas_tecnicos');
+  localStorage.removeItem('etiquetas_tecnicos_meta');
+  document.getElementById('zone-excel').classList.remove('success');
+  document.getElementById('excel-label').textContent='Clique ou arraste a planilha Excel';
+  document.getElementById('tecnicos-count').innerHTML='';
+  const pill=document.getElementById('tec-saved-pill');if(pill)pill.style.display='none';
+  showToast('🗑️ Base de técnicos removida','info');
+}
+function loadExcel(input){
+  const file=input.files[0];if(!file)return;
+  const reader=new FileReader();
+  reader.onload=function(e){
+    try{
+      const wb=XLSX.read(e.target.result,{type:'binary'});
+      let sn=wb.SheetNames.find(n=>n.includes('END')||n.includes('TEC'))||wb.SheetNames[0];
+      const data=XLSX.utils.sheet_to_json(wb.Sheets[sn],{header:1,defval:''});
+      tecnicos=parseTecnicos(data);
+      // Limpa o histórico ao importar nova base
+      historico=[];
+      localStorage.setItem('etiquetas_historico',JSON.stringify(historico));
+      atualizarHeaderStats();
+      // Salva no localStorage para persistir entre sessões
+      try{
+        localStorage.setItem('etiquetas_tecnicos',JSON.stringify(tecnicos));
+        localStorage.setItem('etiquetas_tecnicos_meta',JSON.stringify({
+          nome:file.name,
+          data:new Date().toLocaleString('pt-BR'),
+          total:tecnicos.length
+        }));
+      }catch(e){
+        // Se exceder o limite do localStorage (raro), avisa mas continua
+        showToast('⚠️ Base grande: funcionará só nesta sessão','warning');
+      }
+      renderExcelStatus();
+      showToast(`✅ ${tecnicos.length} técnicos carregados — histórico limpo!`,'success');
+    }catch(err){alert('Erro: '+err.message);}
+  };reader.readAsBinaryString(file);
+}
+function parseTecnicos(rows){
+  const result=[];let current={};
+  for(let i=0;i<rows.length;i++){
+    const row=rows[i];
+    const col0=String(row[0]||'').trim();const col1=String(row[1]||'').trim();
+    if(col0==='Aos Cuidados'){current.nomeCompleto=col1;current.nome=col1.replace(/^A\/C\s*/i,'').replace(/\s*-\s*NOVO\s*$/i,'').trim();}
+    else if(col0==='Endereço'){
+      const m=col1.match(/^(.+?)[,\s-]+\s*(\d+[A-Za-z]?)\s*(.*)$/);
+      if(m){current.logradouro=m[1].trim();current.numero=m[2].trim();current.complemento=m[3].trim();}
+      else{current.logradouro=col1;current.numero='';current.complemento='';}
+    }else if(col0===''&&col1){
+      const cm=col1.match(/CEP\s*:?\s*(\d{5}-?\d{3})/i);
+      if(cm){
+        let cep=cm[1].replace(/[^\d-]/,'');
+        if(!cep.includes('-')&&cep.length===8)cep=cep.substring(0,5)+'-'+cep.substring(5);
+        current.cep=cep;if(current.nome){result.push({...current});current={};}
+      }else if(!current.bairro_cidade){
+        current.bairro_cidade=col1;
+        const parts=col1.split(/\s*-\s*/);
+        if(parts.length>=3){current.bairro=parts[0].trim();current.cidade=parts[1].trim();current.uf=parts[2].trim().substring(0,2).toUpperCase();}
+        else if(parts.length===2){const seg1=parts[0].trim();const seg2=parts[1].trim().toUpperCase();if(/^[A-Z]{2}$/.test(seg2)){current.bairro='';current.cidade=seg1;current.uf=seg2;}else{current.bairro=seg1;current.cidade=seg2;current.uf='';}}
+        else{const m=col1.match(/^(.*?)[\/\s]+([A-Za-z]{2})\s*$/);if(m){current.bairro='';current.cidade=m[1].trim();current.uf=m[2].toUpperCase();}else{current.bairro='';current.cidade=col1;current.uf='';}}
+      }
+    }
+  }return result;
+}
+
+// ── XML FILA ──
+function adicionarXMLs(input){
+  const files=Array.from(input.files);if(!files.length)return;
+  xmlFila=[...xmlFila,...files];xmlFilaTotal=xmlFila.length;renderFilaXML();
+  if(xmlFila.length===files.length)carregarProximoXML();
+  input.value='';
+}
+function renderFilaXML(){
+  const el=document.getElementById('xml-fila');
+  const bar=document.getElementById('proxima-nf-bar');
+  const cnt=document.getElementById('proxima-nf-count');
+  if(!xmlFila.length){el.style.display='none';if(bar)bar.style.display='none';return;}
+
+  // Progress bar
+  const total=xmlFilaTotal||xmlFila.length;
+  const done=total-xmlFila.length;
+  const pct=Math.round((done/total)*100);
+  const progressHTML=total>1?`
+    <div style="margin-bottom:10px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px">
+        <span style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.4px">Progresso da fila</span>
+        <span style="font-size:12px;font-weight:700;color:var(--blue-mid)">${done} / ${total}</span>
+      </div>
+      <div style="height:6px;background:var(--border);border-radius:10px;overflow:hidden">
+        <div style="height:100%;width:${pct}%;background:linear-gradient(90deg,var(--blue),var(--blue-mid));border-radius:10px;transition:width .4s ease"></div>
+      </div>
+      <div style="font-size:10.5px;color:var(--hint);margin-top:4px">${xmlFila.length} restante(s) — ${pct}% concluído</div>
+    </div>`:'';
+
+  if(bar){
+    bar.style.display=xmlFila.length>1?'block':'none';
+    if(cnt)cnt.textContent=xmlFila.length>1?`${xmlFila.length-1} restante(s)`:'';
+  }
+  el.style.display='block';
+  el.innerHTML=progressHTML+xmlFila.map((f,i)=>`
+    <div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--border);font-size:12px;">
+      <span style="width:20px;height:20px;border-radius:50%;background:${i===0?'var(--blue)':'var(--border)'};color:${i===0?'#fff':'var(--muted)'};display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0">${done+i+1}</span>
+      <span style="flex:1;color:${i===0?'var(--text)':'var(--muted)'};overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${f.name}</span>
+      ${i===0?'<span style="font-size:10px;background:rgba(59,130,246,.15);color:var(--blue-mid);padding:2px 7px;border-radius:10px;font-weight:600">atual</span>':''}
+      <button onclick="removerXMLFila(${i})" style="background:none;border:none;cursor:pointer;color:var(--hint);font-size:13px;padding:2px 4px;flex-shrink:0">✕</button>
+    </div>`).join('');
+  document.getElementById('xml-label').textContent=total>1?`${done}/${total} XMLs processados`:`${xmlFila.length} XML na fila`;
+  document.getElementById('zone-xml').classList.toggle('success',xmlFila.length>0);
+}
+function carregarProximoXML(){
+  if(!xmlFila.length)return;
+  const file=xmlFila[0];
+  const reader=new FileReader();
+  reader.onload=function(e){
+    try{
+      const doc=new DOMParser().parseFromString(e.target.result,'application/xml');
+      nfData={};
+      const inf=doc.querySelector('infNFe');if(inf)nfData.chave=(inf.getAttribute('Id')||'').replace(/^NFe/,'');
+      const nNF=doc.querySelector('nNF');if(nNF)nfData.numero=nNF.textContent;
+      const xPed=doc.querySelector('xPed')||doc.querySelector('nPed');if(xPed)nfData.pedido=xPed.textContent;
+      const dest=doc.querySelector('dest');if(dest){const xN=dest.querySelector('xNome');if(xN)nfData.destNome=xN.textContent;}
+      if(nfData.numero)document.getElementById('d-nf').value=nfData.numero;
+      if(nfData.pedido)document.getElementById('d-os').value=nfData.pedido;
+      if(nfData.chave)document.getElementById('d-chave').value=nfData.chave;
+      const p=document.getElementById('nf-parsed');p.style.display='block';
+      p.innerHTML=`<div class="nf-parsed"><div class="nf-row">
+        <div class="nf-kv"><span>NF</span><strong>${nfData.numero||'—'}</strong></div>
+        <div class="nf-kv"><span>Pedido</span><strong>${nfData.pedido||'—'}</strong></div>
+        <div class="nf-kv"><span>Destinatário</span><strong>${nfData.destNome||'—'}</strong></div>
+      </div>${nfData.chave?`<div style="font-size:10px;color:var(--hint);margin-top:5px;word-break:break-all">🔑 ${nfData.chave}</div>`:''}</div>`;
+      renderFilaXML();gerarEtiquetaAuto();
+      setTimeout(()=>{const el=document.getElementById('input-tecnico');if(el){el.focus();el.select();}},80);
+    }catch(err){alert('Erro XML: '+err.message);}
+  };
+  reader.readAsText(file,'UTF-8');
+}
+function removerXMLFila(i){
+  xmlFila.splice(i,1);
+  if(i===0&&xmlFila.length)carregarProximoXML();
+  else if(!xmlFila.length)limparZonaXML();
+  else renderFilaXML();
+}
+function limparZonaXML(){
+  xmlFila=[];xmlFilaTotal=0;nfData={};
+  document.getElementById('nf-parsed').style.display='none';
+  document.getElementById('xml-fila').style.display='none';
+  document.getElementById('zone-xml').className='upload-zone';
+  document.getElementById('xml-label').textContent='Clique ou arraste os arquivos XML';
+  ['d-nf','d-os','d-chave'].forEach(id=>document.getElementById(id).value='');
+}
+function avancarXMLFila(){
+  xmlFila.shift();
+  document.getElementById('nf-parsed').style.display='none';
+  ['d-nf','d-os','d-chave'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('input-tecnico').value='';
+  ['t-logradouro','t-numero','t-complemento','t-bairro','t-cidade','t-uf','t-cep','t-ac']
+    .forEach(id=>{const el=document.getElementById(id);if(el){el.value='';el.classList.remove('autofilled');}});
+  document.getElementById('cep-status').textContent='';
+  document.getElementById('preview-area').innerHTML='<div class="preview-placeholder"><div class="pp-icon">🏷️</div><div class="pp-text">Selecione o técnico destinatário para a próxima nota.</div></div>';
+  document.getElementById('preview-actions').style.display='none';
+  document.getElementById('preview-status').textContent='Aguardando';
+  document.getElementById('preview-status').className='preview-status ps-empty';
+  if(xmlFila.length){carregarProximoXML();showToast(`📄 Próximo XML: ${xmlFila[0].name}`,'info');}
+  else{limparZonaXML();showToast('✅ Todos os XMLs processados!','success');}
+}
+
+// ── AUTOCOMPLETE ──
+function buscarTecnico(q){
+  const list=document.getElementById('autocomplete-list');
+  if(!q||q.length<2||!tecnicos.length){list.style.display='none';return;}
+  const ql=q.toLowerCase();
+  const matches=tecnicos.filter(t=>t.nome&&t.nome.toLowerCase().includes(ql)).slice(0,10);
+  if(!matches.length){list.style.display='none';return;}
+  list.innerHTML='';
+  matches.forEach(t=>{
+    const idx=tecnicos.indexOf(t);const div=document.createElement('div');div.className='ac-item';
+    const loc=[t.cidade,t.uf].filter(Boolean).join('/');
+    div.innerHTML=t.nome.replace(new RegExp(q.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'),'gi'),m=>`<em>${m}</em>`)+(loc?`<span class="ac-loc">${loc}</span>`:'');
+    div.onclick=()=>selecionarTecnico(idx);list.appendChild(div);
+  });list.style.display='block';
+}
+function selecionarTecnico(idx){
+  const t=tecnicos[idx];
+  document.getElementById('input-tecnico').value=t.nome;
+  document.getElementById('autocomplete-list').style.display='none';
+  document.getElementById('t-logradouro').value=t.logradouro||'';
+  document.getElementById('t-numero').value=t.numero||'';
+  document.getElementById('t-complemento').value=t.complemento||'';
+  document.getElementById('t-bairro').value=t.bairro||'';
+  document.getElementById('t-cidade').value=t.cidade||'';
+  document.getElementById('t-uf').value=t.uf||'';
+  document.getElementById('t-cep').value=t.cep||'';
+  document.getElementById('t-ac').value=t.nomeCompleto||'A/C GERENTE ADM';
+  const faltando=!t.bairro||!t.uf||!t.cidade;
+  const cep=(t.cep||'').replace(/\D/g,'');
+  if(cep.length===8&&faltando){document.getElementById('cep-status').textContent='🔍 Buscando dados do CEP...';buscarCEP(cep);}
+  gerarEtiqueta();
+}
+document.addEventListener('click',e=>{if(!e.target.closest('.autocomplete-wrap'))document.getElementById('autocomplete-list').style.display='none';});
+document.getElementById('confirm-modal').addEventListener('click',e=>{if(e.target===document.getElementById('confirm-modal'))cancelarSalvar();});
+
+// ── ETIQUETA ──
+function getFormData(){
+  return{
+    destNome:document.getElementById('input-tecnico').value.trim(),
+    ac:document.getElementById('t-ac').value.trim(),
+    logradouro:document.getElementById('t-logradouro').value.trim(),
+    numero:document.getElementById('t-numero').value.trim(),
+    complemento:document.getElementById('t-complemento').value.trim(),
+    bairro:document.getElementById('t-bairro').value.trim(),
+    cidade:document.getElementById('t-cidade').value.trim(),
+    uf:document.getElementById('t-uf').value.trim().toUpperCase(),
+    cep:document.getElementById('t-cep').value.trim(),
+    nf:document.getElementById('d-nf').value.trim(),
+    os:document.getElementById('d-os').value.trim(),
+    obs:document.getElementById('d-obs').value.trim(),
+    chave:document.getElementById('d-chave').value.trim(),
+    docDest:document.getElementById('d-doc-dest').value.trim(),
+    peso:document.getElementById('d-peso').value.trim(),
+    altura:document.getElementById('d-altura').value.trim(),
+    largura:document.getElementById('d-largura').value.trim(),
+    comprimento:document.getElementById('d-comprimento').value.trim()
+  };
+}
+function gerarEtiquetaAuto(){
+  clearTimeout(autoTimer);autoTimer=setTimeout(()=>{const d=getFormData();if(d.destNome&&d.cep)gerarEtiqueta(true);},300);
+}
+function gerarEtiqueta(silent=false){
+  const d=getFormData();
+  if(!d.destNome){if(!silent)alert('Informe o nome do destinatário.');return;}
+  if(!d.cep){if(!silent)alert('Informe o CEP.');return;}
+  if(!d.ac){document.getElementById('t-ac').value='A/C GERENTE ADM';d.ac='A/C GERENTE ADM';}
+  const rem=getRemetente();
+  const remStr=rem.nome?`${rem.nome}${rem.cnpj?' &nbsp;|&nbsp; CNPJ: '+rem.cnpj:''}<br>${rem.end||''}${rem.num?', '+rem.num:''}${rem.comp?' '+rem.comp:''} — ${rem.bairro||''} — ${rem.cidade||''}${rem.uf?'/'+rem.uf:''} — CEP: ${rem.cep||''}`:'<em style="opacity:.7">Configure o remetente</em>';
+  const endLine=[d.logradouro,d.numero,d.complemento].filter(Boolean).join(', ');
+  document.getElementById('preview-area').innerHTML=`
+    <div class="etiqueta-box">
+      <div class="etiqueta-rem"><strong>REMETENTE</strong><br>${remStr}</div>
+      <div class="etiqueta-dest">
+        ${d.ac?`<div class="etiqueta-ac">${d.ac}</div>`:''}
+        <div class="etiqueta-nome">${d.destNome.toUpperCase()}</div>
+        <div class="etiqueta-end">${endLine?endLine+'<br>':''}${d.bairro?d.bairro+' — ':''}${d.cidade}${d.uf?'/'+d.uf:''}</div>
+        <div class="etiqueta-cep">CEP: ${d.cep}</div>
+        ${(d.nf||d.os||d.chave)?`<div class="etiqueta-nf">${d.nf?'📄 NF: '+d.nf+'&nbsp;&nbsp;':''}${d.os?'🔧 OS: '+d.os+'&nbsp;&nbsp;':''}${d.chave?'<br>🔑 '+d.chave:''}</div>`:''}
+      </div>
+    </div>`;
+  document.getElementById('preview-actions').style.display='flex';
+  document.getElementById('preview-status').textContent='Pronta';
+  document.getElementById('preview-status').className='preview-status ps-ready';
+}
+function imprimirEtiqueta(){window.print();}
+function copiarEtiqueta(){
+  const d=getFormData();const rem=getRemetente();
+  const endLine=[d.logradouro,d.numero,d.complemento].filter(Boolean).join(', ');
+  const txt=`REMETENTE: ${rem.nome||''} | ${rem.end||''}, ${rem.num||''} — ${rem.cidade||''}/${rem.uf||''} — CEP: ${rem.cep||''}\n---\n${d.ac?d.ac+'\n':''}${d.destNome.toUpperCase()}\n${endLine}\n${d.bairro?d.bairro+' — ':''}${d.cidade}/${d.uf}\nCEP: ${d.cep}\n${d.nf?'NF: '+d.nf:''}${d.os?' | OS: '+d.os:''}\n${d.chave?'Chave: '+d.chave:''}`.trim();
+  navigator.clipboard.writeText(txt).then(()=>showToast('✅ Copiado!','success'));
+}
+function salvarHistorico(){
+  const d=getFormData();
+  if(!d.destNome||!d.cep){showToast('⚠️ Preencha nome e CEP.','warning');return;}
+  // Mostra painel de confirmação
+  const modal=document.getElementById('confirm-modal');
+  document.getElementById('cm-nome').textContent=d.destNome||'—';
+  document.getElementById('cm-nf').textContent=d.nf?'NF '+d.nf:'—';
+  document.getElementById('cm-cep').textContent=d.cep||'—';
+  document.getElementById('cm-cidade').textContent=(d.cidade||'')+(d.uf?'/'+d.uf:'');
+  document.getElementById('cm-end').textContent=[d.logradouro,d.numero,d.complemento].filter(Boolean).join(', ')||'—';
+  modal.style.display='flex';
+  modal._data=d;
+}
+function confirmarSalvar(){
+  const modal=document.getElementById('confirm-modal');
+  const d=modal._data;
+  modal.style.display='none';
+  historico.unshift({...d,data:new Date().toLocaleString('pt-BR'),id:Date.now()});
+  localStorage.setItem('etiquetas_historico',JSON.stringify(historico));
+  registrarStat(d);
+  atualizarHeaderStats();
+  showToast('✅ Salvo no histórico!','success');
+  if(xmlFila.length>0){
+    avancarXMLFila();
+    // focus goes to tecnico field after XML loads (carregarProximoXML handles it)
+    // but if no more XMLs, focus immediately
+  } else {
+    setTimeout(()=>{const el=document.getElementById('input-tecnico');if(el){el.focus();el.select();}},80);
+  }
+}
+function cancelarSalvar(){
+  document.getElementById('confirm-modal').style.display='none';
+}
+
+// ── HISTÓRICO ──
+function renderHistorico(){
+  const el=document.getElementById('historico-content');
+  const acts=document.getElementById('historico-actions');
+  const filtros=document.getElementById('historico-filtros');
+  if(!historico.length){
+    el.innerHTML='<div class="alert alert-info"><span class="alert-icon">ℹ️</span><span>Nenhum envio registrado ainda.</span></div>';
+    acts.style.display='none';filtros.style.display='none';return;
+  }
+  acts.style.display='flex';filtros.style.display='block';
+  const busca=(document.getElementById('hist-busca')||{value:''}).value.toLowerCase().trim();
+  const ordem=(document.getElementById('hist-ordem')||{value:'data-desc'}).value;
+  let lista=historico.map((h,i)=>({...h,_i:i}));
+  if(busca)lista=lista.filter(h=>(h.destNome||'').toLowerCase().includes(busca)||(h.nf||'').toLowerCase().includes(busca)||(h.cep||'').includes(busca)||(h.cidade||'').toLowerCase().includes(busca)||(h.os||'').toLowerCase().includes(busca));
+  lista.sort((a,b)=>{
+    if(ordem==='nf-asc'||ordem==='nf-desc'){const na=parseInt(a.nf)||0,nb=parseInt(b.nf)||0;return ordem==='nf-asc'?na-nb:nb-na;}
+    if(ordem==='nome-asc')return(a.destNome||'').localeCompare(b.destNome||'');
+    if(ordem==='nome-desc')return(b.destNome||'').localeCompare(a.destNome||'');
+    if(ordem==='data-asc')return a.id-b.id;
+    return b.id-a.id;
+  });
+  if(!lista.length){el.innerHTML=`<div class="alert alert-warning"><span class="alert-icon">⚠️</span><span>Nenhum resultado para "<strong>${busca}</strong>".</span></div>`;return;}
+  el.innerHTML=`<table class="hist-table"><thead><tr><th>Data/Hora</th><th>Destinatário</th><th>Cidade/UF</th><th>CEP</th><th>NF</th><th>Ações</th></tr></thead><tbody>${lista.map(h=>`
+    <tr>
+      <td style="color:var(--muted);font-size:12px;white-space:nowrap">${h.data}</td>
+      <td><strong>${h.destNome}</strong>${h.ac?'<br><small style="color:var(--muted)">'+h.ac+'</small>':''}</td>
+      <td>${h.cidade||''}${h.uf?'/'+h.uf:''}</td>
+      <td><span class="badge badge-blue">${h.cep||'—'}</span></td>
+      <td>${h.nf?'<span class="badge badge-green">'+h.nf+'</span>':'<span class="badge badge-gray">—</span>'}</td>
+      <td style="white-space:nowrap">
+        <button class="btn btn-outline btn-xs" onclick="recarregarHistorico(${h._i})" title="Recarregar">↺</button>
+        <button class="btn btn-danger btn-xs" style="margin-left:4px" onclick="removerHistorico(${h._i})" title="Remover">✕</button>
+      </td>
+    </tr>`).join('')}</tbody></table>
+    <div style="font-size:12px;color:var(--hint);margin-top:8px;text-align:right">${lista.length} de ${historico.length} registro(s)</div>`;
+}
+function recarregarHistorico(i){
+  const h=historico[i];
+  document.getElementById('input-tecnico').value=h.destNome||'';
+  ['logradouro','numero','complemento','bairro','cidade','uf','cep','ac'].forEach(k=>{const el=document.getElementById('t-'+k);if(el)el.value=h[k]||'';});
+  document.getElementById('d-nf').value=h.nf||'';
+  document.getElementById('d-os').value=h.os||'';
+  document.getElementById('d-obs').value=h.obs||'';
+  document.getElementById('d-chave').value=h.chave||'';
+  document.getElementById('d-doc-dest').value=h.docDest||'';
+  document.getElementById('d-peso').value=h.peso||'';
+  document.getElementById('d-altura').value=h.altura||'';
+  document.getElementById('d-largura').value=h.largura||'';
+  document.getElementById('d-comprimento').value=h.comprimento||'';
+  showTab('gerador',document.querySelectorAll('.tab')[1]);
+  gerarEtiqueta();
+}
+function removerHistorico(i){historico.splice(i,1);localStorage.setItem('etiquetas_historico',JSON.stringify(historico));atualizarHeaderStats();renderHistorico();}
+function limparHistorico(){
+  const acts=document.getElementById('historico-actions');
+  acts.innerHTML=`<span style="font-size:13px;color:var(--red);font-weight:600">Tem certeza? Isso apaga tudo.</span>
+    <button class="btn btn-danger btn-sm" onclick="confirmarLimparHistorico()">✓ Confirmar</button>
+    <button class="btn btn-ghost btn-sm" onclick="renderHistorico()">Cancelar</button>`;
+}
+function confirmarLimparHistorico(){historico=[];localStorage.setItem('etiquetas_historico',JSON.stringify(historico));atualizarHeaderStats();renderHistorico();showToast('🗑️ Histórico limpo!','info');}
+
+// ── EXPORTAR ──
+function renderExportar(){
+  const el=document.getElementById('exportar-content');
+  const btn=document.getElementById('exportar-btn');
+  const previewSec=document.getElementById('exportar-preview-section');
+  const previewGrid=document.getElementById('exportar-etiquetas-grid');
+  const rem=getRemetente();
+  if(!historico.length){
+    el.innerHTML='<div class="alert alert-warning"><span class="alert-icon">⚠️</span><span>Salve etiquetas no histórico para exportar.</span></div>';
+    btn.style.display='none';previewSec.style.display='none';return;
+  }
+  el.innerHTML=`<div class="alert alert-success"><span class="alert-icon">✅</span><span><strong>${historico.length}</strong> etiqueta(s) prontas para exportar.</span></div>
+    <p style="font-size:12px;color:var(--muted)">Doc. Remetente: <strong>${rem.cnpj||'<em>(configure na aba Remetente)</em>'}</strong></p>`;
+  btn.style.display='block';
+
+  // Preview de todas as etiquetas
+  previewSec.style.display='block';
+  previewGrid.innerHTML=historico.map((h,i)=>{
+    const endLine=[h.logradouro,h.numero,h.complemento].filter(Boolean).join(', ');
+    return `<div class="export-etiqueta-mini">
+      <div class="eem-header">REMETENTE: ${rem.nome||'—'}</div>
+      <div class="eem-body">
+        ${h.ac?`<div style="font-size:10px;color:var(--muted);font-style:italic">${h.ac}</div>`:''}
+        <div class="eem-nome">${(h.destNome||'').toUpperCase()}</div>
+        <div class="eem-end">${endLine?endLine+'<br>':''}${h.bairro?h.bairro+' — ':''}${h.cidade||''}${h.uf?'/'+h.uf:''}</div>
+        <div class="eem-cep">CEP: ${h.cep||'—'}</div>
+        ${h.nf||h.os?`<div class="eem-nf">${h.nf?'NF: '+h.nf:''}${h.os?' | OS: '+h.os:''}</div>`:''}
+        <div style="font-size:10px;color:var(--hint);margin-top:5px">${h.data}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+function exportarCorreios(){
+  const rem=getRemetente();const ws_data=[];
+  historico.forEach(h=>{
+    ws_data.push([(h.destNome||'').toUpperCase(),(h.cep||'').replace('-',''),(h.logradouro||'').toUpperCase(),(h.numero||'')||'SN',(h.complemento||'').toUpperCase(),(h.bairro||'').toUpperCase(),(h.cidade||'').toUpperCase(),(h.uf||'').toUpperCase(),(h.ac||'').toUpperCase(),h.docDest||'',rem.cnpj||'',h.peso?parseInt(h.peso):'',h.altura?parseInt(h.altura):'',h.largura?parseInt(h.largura):'',h.comprimento?parseInt(h.comprimento):'',h.chave||h.nf||'']);
+  });
+  const wb=XLSX.utils.book_new();const ws=XLSX.utils.aoa_to_sheet(ws_data);
+  ws_data.forEach((_,ri)=>{const ca=XLSX.utils.encode_cell({r:ri,c:15});if(ws[ca])ws[ca].t='s';});
+  ws['!cols']=[{wch:35},{wch:11},{wch:35},{wch:10},{wch:20},{wch:25},{wch:25},{wch:5},{wch:35},{wch:20},{wch:20},{wch:8},{wch:8},{wch:8},{wch:12},{wch:48}];
+  XLSX.utils.book_append_sheet(wb,ws,'Simples');
+  const totalExportado=historico.length;
+  // Salva snapshot do histórico exportado no localStorage antes de limpar
+  const snapshotExportado=historico.map(h=>({destNome:h.destNome,nf:h.nf,os:h.os,cidade:h.cidade,uf:h.uf,cep:h.cep,data:h.data}));
+  localStorage.setItem('etiquetas_ultimo_export',JSON.stringify({data:new Date().toLocaleString('pt-BR'),total:totalExportado,itens:snapshotExportado}));
+  XLSX.writeFile(wb,`etiquetas_correios_${new Date().toISOString().slice(0,10)}.xlsx`);
+  // Limpa histórico após exportar (stats do dashboard são preservadas separadamente)
+  historico=[];
+  localStorage.setItem('etiquetas_historico',JSON.stringify(historico));
+  atualizarHeaderStats();
+  renderExportar();
+  renderDashboard();
+  showToast(`✅ ${totalExportado} etiqueta(s) exportadas — histórico limpo!`,'success');
+}
+
+// ── UTILS ──
+function toggleDimensoes(){
+  const body=document.getElementById('dim-body');
+  const arrow=document.getElementById('dim-arrow');
+  const toggle=document.getElementById('dim-toggle');
+  const open=body.style.display==='none';
+  body.style.display=open?'block':'none';
+  arrow.style.transform=open?'rotate(180deg)':'rotate(0deg)';
+  toggle.style.borderColor=open?'var(--blue)':'var(--border)';
+  toggle.style.color=open?'var(--blue)':'var(--muted)';
+}
+
+function formatCEP(input){let v=input.value.replace(/\D/g,'');if(v.length>5)v=v.substring(0,5)+'-'+v.substring(5,8);input.value=v;}
+function limparTudo(){
+  document.getElementById('input-tecnico').value='';
+  ['t-logradouro','t-numero','t-complemento','t-bairro','t-cidade','t-uf','t-cep','t-ac',
+   'd-nf','d-os','d-obs','d-chave','d-doc-dest','d-peso','d-altura','d-largura','d-comprimento']
+    .forEach(id=>{const el=document.getElementById(id);if(el){el.value='';el.classList.remove('autofilled');}});
+  document.getElementById('cep-status').textContent='';
+  document.getElementById('preview-area').innerHTML='<div class="preview-placeholder"><div class="pp-icon">🏷️</div><div class="pp-text">Preencha o <strong>nome</strong> e o <strong>CEP</strong> do destinatário para ver a etiqueta em tempo real.</div></div>';
+  document.getElementById('preview-actions').style.display='none';
+  document.getElementById('preview-status').textContent='Aguardando';
+  document.getElementById('preview-status').className='preview-status ps-empty';
+  nfData={};document.getElementById('nf-parsed').style.display='none';
+  limparZonaXML();
+  showToast('🗑️ Campos limpos','info');
+}
+
+function showToast(msg,type='info'){
+  const old=document.getElementById('_toast');if(old)old.remove();
+  const t=document.createElement('div');t.id='_toast';
+  const c={success:'var(--green)',warning:'var(--amber)',info:'var(--blue)',danger:'var(--red)'};
+  t.style.cssText=`position:fixed;bottom:24px;right:24px;z-index:9999;padding:11px 18px;border-radius:var(--radius-sm);background:${c[type]||c.info};color:#fff;font-size:13px;font-family:'Sora',sans-serif;font-weight:600;opacity:0;transition:opacity .2s;pointer-events:none;box-shadow:var(--shadow-md)`;
+  t.textContent=msg;document.body.appendChild(t);
+  requestAnimationFrame(()=>{t.style.opacity='1';});
+  setTimeout(()=>{t.style.opacity='0';setTimeout(()=>t.remove(),250);},2800);
+}
+
+// ── ATALHOS DE TECLADO ──
+document.addEventListener('keydown', e => {
+  const modal = document.getElementById('confirm-modal');
+  const modalOpen = modal && modal.style.display !== 'none';
+
+  // Esc — fecha modal ou limpa campos
+  if(e.key === 'Escape') {
+    if(modalOpen){ cancelarSalvar(); showToast('↩ Cancelado','info'); return; }
+    // só limpa se não estiver em input
+    if(!['INPUT','TEXTAREA','SELECT'].includes(document.activeElement.tagName)){
+      limparTudo();
+    }
+    return;
+  }
+
+  // Ctrl+S — abre modal de confirmação (salvar)
+  if((e.ctrlKey||e.metaKey) && e.key === 's'){
+    e.preventDefault();
+    if(modalOpen){ confirmarSalvar(); return; }
+    salvarHistorico();
+    return;
+  }
+});
+
+init();
+renderDashboard();
+</script>
+</body>
+</html>
